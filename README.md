@@ -1,11 +1,11 @@
 # docx-equation
 
-`docx-equation` builds DOCX equation content from MathML. It can export Word OMML equations or MathType-compatible OLE objects and uses shared layout helpers for numbered display equations.
+`docx-equation` builds DOCX equation content from MathML. It supports two export paths: native Word OMML equations for the built-in Word equation engine, and MathType-compatible OLE objects for MathType-oriented workflows. Both paths use the same document registry, layout helpers, and numbered display-equation controls.
 
 ## Features
 
 - MathML parsing into a shared equation AST.
-- MathML to Word OMML conversion.
+- MathML to native Word OMML conversion.
 - MathML to MathType MTEF and `Equation.DSMT4` OLE objects.
 - Optional `Equation.DSMT6` OLE generation.
 - `EquationRegistry` and `EquationDocument` helpers for composing equations directly with `python-docx`.
