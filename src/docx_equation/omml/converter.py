@@ -1,3 +1,5 @@
+"""MathML to native Word OMML conversion."""
+
 from __future__ import annotations
 
 from lxml import etree
@@ -11,6 +13,7 @@ W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
 
 def mathml_to_omml(data: bytes | str, display: bool = False, options: OmmlOptions | None = None) -> etree._Element:
+    """Convert a MathML string or byte sequence into an OMML XML element."""
     opts = options or OmmlOptions()
     root = _parse(data)
     omath = _el("m:oMath")
@@ -25,6 +28,7 @@ def mathml_to_omml(data: bytes | str, display: bool = False, options: OmmlOption
 
 
 def mathml_to_omml_xml(data: bytes | str, display: bool = False, options: OmmlOptions | None = None) -> bytes:
+    """Convert a MathML equation into serialized OMML XML bytes."""
     return etree.tostring(mathml_to_omml(data, display=display, options=options), encoding="utf-8")
 
 

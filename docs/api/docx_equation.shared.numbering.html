@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module docx_equation.shared.numbering</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="docx_equation.html" class="white">docx_equation</a>.<a href="docx_equation.shared.html" class="white">shared</a>.numbering</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="../../src/docx_equation/shared/numbering.py">src/docx_equation/shared/numbering.py</a></td></tr></table>
+    <p><span class="code">OOXML&nbsp;helpers&nbsp;for&nbsp;centered&nbsp;display&nbsp;equations&nbsp;with&nbsp;right-aligned&nbsp;labels.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="lxml.etree.html">lxml.etree</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-make_number_runs"><strong>make_number_runs</strong></a>(
+    number: 'int | str',
+    opts: 'NumberingOptions',
+    style: 'EquationStyle'
+) -&gt; 'list[etree._Element]'</dt><dd><span class="code">Create&nbsp;Word&nbsp;runs&nbsp;for&nbsp;a&nbsp;display-equation&nbsp;number.</span></dd></dl>
+ <dl><dt><a name="-make_run_properties"><strong>make_run_properties</strong></a>(style: 'EquationStyle') -&gt; 'etree._Element'</dt></dl>
+ <dl><dt><a name="-make_seq_field_runs"><strong>make_seq_field_runs</strong></a>(
+    number: 'int',
+    opts: 'NumberingOptions',
+    style: 'EquationStyle'
+) -&gt; 'list[etree._Element]'</dt></dl>
+ <dl><dt><a name="-make_tab_run"><strong>make_tab_run</strong></a>(style: 'EquationStyle | None' = None) -&gt; 'etree._Element'</dt></dl>
+ <dl><dt><a name="-make_tabbed_equation_paragraph"><strong>make_tabbed_equation_paragraph</strong></a>(
+    equation_node: 'etree._Element',
+    number: 'int | str | None',
+    text_width_dxa: 'int',
+    *,
+    numbering: 'NumberingOptions | None' = None,
+    style: 'EquationStyle | None' = None
+) -&gt; 'etree._Element'</dt><dd><span class="code">Create&nbsp;a&nbsp;paragraph&nbsp;with&nbsp;center&nbsp;and&nbsp;right&nbsp;tab&nbsp;stops&nbsp;for&nbsp;an&nbsp;equation.</span></dd></dl>
+ <dl><dt><a name="-make_text_run"><strong>make_text_run</strong></a>(text: 'str', style: 'EquationStyle | None' = None) -&gt; 'etree._Element'</dt></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>NS</strong> = {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main', 'm': 'http://schemas.openxmlformats.org/officeDocument/2006/math', 'mc': 'http://schemas.openxmlformats.org/markup-compatibility/2006', 'o': 'urn:schemas-microsoft-com:office:office', 'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'v': 'urn:schemas-microsoft-com:vml', 'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w14': 'http://schemas.microsoft.com/office/word/2010/wordml'}</td></tr></table>
+</body></html>

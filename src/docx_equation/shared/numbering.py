@@ -1,3 +1,5 @@
+"""OOXML helpers for centered display equations with right-aligned labels."""
+
 from __future__ import annotations
 
 from lxml import etree
@@ -14,6 +16,7 @@ def make_tabbed_equation_paragraph(
     numbering: NumberingOptions | None = None,
     style: EquationStyle | None = None,
 ) -> etree._Element:
+    """Create a paragraph with center and right tab stops for an equation."""
     opts = numbering or NumberingOptions()
     equation_style = style or EquationStyle()
     effective_width = opts.text_width_dxa or text_width_dxa
@@ -42,6 +45,7 @@ def make_tab_run(style: EquationStyle | None = None) -> etree._Element:
 
 
 def make_number_runs(number: int | str, opts: NumberingOptions, style: EquationStyle) -> list[etree._Element]:
+    """Create Word runs for a display-equation number."""
     if isinstance(number, int):
         if opts.number_format == "(1SEP1)" and opts.chapter is not None:
             if opts.use_seq_field:

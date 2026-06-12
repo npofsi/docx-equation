@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: package docx_equation.omml</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="docx_equation.html" class="white">docx_equation</a>.omml</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="../../src/docx_equation/omml/__init__.py">src/docx_equation/omml/__init__.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Package Contents</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="docx_equation.omml.converter.html">converter</a><br>
+</td><td class="multicolumn"><a href="docx_equation.omml.embed.html">embed</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-build_equation_docx"><strong>build_equation_docx</strong></a>(
+    equations: 'list[str]',
+    output_docx: 'str | Path',
+    options: 'OptionsLike' = None
+) -&gt; 'ConversionSummary'</dt></dl>
+ <dl><dt><a name="-embed_mathml_placeholders"><strong>embed_mathml_placeholders</strong></a>(
+    input_docx: 'str | Path',
+    output_docx: 'str | Path',
+    equations: 'list[EquationSpec]',
+    options: 'OptionsLike' = None,
+    work_dir: 'str | Path | None' = None
+) -&gt; 'ConversionSummary'</dt></dl>
+ <dl><dt><a name="-mathml_to_omml"><strong>mathml_to_omml</strong></a>(
+    data: 'bytes | str',
+    display: 'bool' = False,
+    options: 'OmmlOptions | None' = None
+) -&gt; 'etree._Element'</dt><dd><span class="code">Convert&nbsp;a&nbsp;MathML&nbsp;string&nbsp;or&nbsp;byte&nbsp;sequence&nbsp;into&nbsp;an&nbsp;OMML&nbsp;XML&nbsp;element.</span></dd></dl>
+ <dl><dt><a name="-mathml_to_omml_xml"><strong>mathml_to_omml_xml</strong></a>(
+    data: 'bytes | str',
+    display: 'bool' = False,
+    options: 'OmmlOptions | None' = None
+) -&gt; 'bytes'</dt><dd><span class="code">Convert&nbsp;a&nbsp;MathML&nbsp;equation&nbsp;into&nbsp;serialized&nbsp;OMML&nbsp;XML&nbsp;bytes.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>__all__</strong> = ['build_equation_docx', 'embed_mathml_placeholders', 'mathml_to_omml', 'mathml_to_omml_xml']</td></tr></table>
+</body></html>

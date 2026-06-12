@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module docx_equation.mathtype.embed</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="docx_equation.html" class="white">docx_equation</a>.<a href="docx_equation.mathtype.html" class="white">mathtype</a>.embed</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="../../src/docx_equation/mathtype/embed.py">src/docx_equation/mathtype/embed.py</a></td></tr></table>
+    <p><span class="code">DOCX&nbsp;embedding&nbsp;support&nbsp;for&nbsp;MathType-compatible&nbsp;equation&nbsp;objects.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="PIL.Image.html">PIL.Image</a><br>
+</td><td class="multicolumn"><a href="PIL.ImageDraw.html">PIL.ImageDraw</a><br>
+</td><td class="multicolumn"><a href="lxml.etree.html">lxml.etree</a><br>
+</td><td class="multicolumn"><a href="tempfile.html">tempfile</a><br>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-build_equation_docx"><strong>build_equation_docx</strong></a>(
+    equations: 'list[str]',
+    output_docx: 'str | Path',
+    options: 'OptionsLike' = None
+) -&gt; 'ConversionSummary'</dt><dd><span class="code">Build&nbsp;a&nbsp;new&nbsp;DOCX&nbsp;containing&nbsp;MathType&nbsp;display&nbsp;equations.</span></dd></dl>
+ <dl><dt><a name="-embed_mathml_placeholders"><strong>embed_mathml_placeholders</strong></a>(
+    input_docx: 'str | Path',
+    output_docx: 'str | Path',
+    equations: 'list[EquationSpec]',
+    options: 'OptionsLike' = None,
+    work_dir: 'str | Path | None' = None
+) -&gt; 'ConversionSummary'</dt><dd><span class="code">Replace&nbsp;DOCX&nbsp;placeholders&nbsp;with&nbsp;MathType&nbsp;OLE&nbsp;objects&nbsp;generated&nbsp;from&nbsp;MathML.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>CT_NS</strong> = 'http://schemas.openxmlformats.org/package/2006/content-types'<br>
+<strong>DXEQ_NS</strong> = 'https://github.com/npofsi/docx-equation/mathtype'<br>
+<strong>IMAGE_REL</strong> = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'<br>
+<strong>MC_NS</strong> = 'http://schemas.openxmlformats.org/markup-compatibility/2006'<br>
+<strong>NS</strong> = {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main', 'm': 'http://schemas.openxmlformats.org/officeDocument/2006/math', 'mc': 'http://schemas.openxmlformats.org/markup-compatibility/2006', 'o': 'urn:schemas-microsoft-com:office:office', 'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'v': 'urn:schemas-microsoft-com:vml', 'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w14': 'http://schemas.microsoft.com/office/word/2010/wordml'}<br>
+<strong>OLE_REL</strong> = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject'<br>
+<strong>OptionsLike</strong> = docx_equation.shared.models.ExportOptions | docx... | docx_equation.shared.models.OmmlOptions | None<br>
+<strong>REL_NS</strong> = 'http://schemas.openxmlformats.org/package/2006/relationships'<br>
+<strong>W_NS</strong> = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'<br>
+<strong>ZIP_DEFLATED</strong> = 8</td></tr></table>
+</body></html>

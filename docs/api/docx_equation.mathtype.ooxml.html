@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module docx_equation.mathtype.ooxml</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="docx_equation.html" class="white">docx_equation</a>.<a href="docx_equation.mathtype.html" class="white">mathtype</a>.ooxml</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="../../src/docx_equation/mathtype/ooxml.py">src/docx_equation/mathtype/ooxml.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="lxml.etree.html">lxml.etree</a><br>
+</td><td class="multicolumn"><a href="tempfile.html">tempfile</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-build_demo_docx"><strong>build_demo_docx</strong></a>(
+    formula: 'str',
+    output_docx: 'str | Path',
+    mathtype_version: 'str' = 'DSMT4'
+) -&gt; 'Path'</dt></dl>
+ <dl><dt><a name="-make_display_equation_paragraph"><strong>make_display_equation_paragraph</strong></a>(
+    object_run: 'etree._Element',
+    number: 'int | str',
+    text_width_dxa: 'int',
+    *,
+    before_dxa: 'int' = 80,
+    after_dxa: 'int' = 80,
+    numbering: 'NumberingOptions | None' = None,
+    style: 'EquationStyle | None' = None
+) -&gt; 'etree._Element'</dt></dl>
+ <dl><dt><a name="-make_object_run"><strong>make_object_run</strong></a>(
+    image_rel_id: 'str',
+    ole_rel_id: 'str',
+    preview_width_px: 'int',
+    preview_height_px: 'int',
+    index: 'int' = 1,
+    display: 'bool' = False,
+    inline_height_pt: 'float' = 12.5,
+    display_height_pt: 'float' = 21.0,
+    max_width_pt: 'float' = 360.0,
+    preview_pt_per_px: 'float | None' = None,
+    vertical_align: 'str | None' = None,
+    prog_id: 'str' = 'Equation.DSMT4'
+) -&gt; 'etree._Element'</dt></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>CT_NS</strong> = 'http://schemas.openxmlformats.org/package/2006/content-types'<br>
+<strong>IMAGE_REL</strong> = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image'<br>
+<strong>NS</strong> = {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main', 'o': 'urn:schemas-microsoft-com:office:office', 'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'v': 'urn:schemas-microsoft-com:vml', 'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', 'w14': 'http://schemas.microsoft.com/office/word/2010/wordml'}<br>
+<strong>OLE_REL</strong> = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject'<br>
+<strong>PLACEHOLDER</strong> = '{{DOCX_EQUATION_OLE_1}}'<br>
+<strong>REL_NS</strong> = 'http://schemas.openxmlformats.org/package/2006/relationships'<br>
+<strong>ZIP_DEFLATED</strong> = 8</td></tr></table>
+</body></html>

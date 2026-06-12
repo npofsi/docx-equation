@@ -1,3 +1,5 @@
+"""Configuration models shared by OMML and MathType export paths."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,6 +16,8 @@ NumberingFormat = Literal["(1)", "(1SEP1)"]
 
 @dataclass(frozen=True)
 class EquationStyle:
+    """Font and color settings applied to equation labels and generated layout runs."""
+
     font_family: str = "Times New Roman"
     east_asia_font: str = "SimSun"
     font_size_pt: float = 10.5
@@ -23,6 +27,12 @@ class EquationStyle:
 
 @dataclass(frozen=True)
 class NumberingOptions:
+    """Options for tabbed display-equation numbering.
+
+    ``number_format="(1)"`` renders only the sequence number. ``"(1SEP1)"``
+    renders chapter, separator, and sequence number, for example ``(4-1)``.
+    """
+
     enabled: bool = True
     layout: Literal["tabbed"] = "tabbed"
     number_format: NumberingFormat = "(1SEP1)"
@@ -39,6 +49,8 @@ class NumberingOptions:
 
 @dataclass(frozen=True)
 class OmmlOptions:
+    """Options used only when generating native Word OMML equations."""
+
     display: bool = False
     font_family: str | None = None
     east_asia_font: str | None = None
@@ -46,6 +58,8 @@ class OmmlOptions:
 
 @dataclass(frozen=True)
 class MathTypeOptions:
+    """Options used only when generating MathType-compatible OLE objects."""
+
     embed_mode: EmbedMode = "alternate-content"
     mathtype_version: MathTypeVersion = "DSMT4"
     inline_height_pt: float = 12.5
@@ -62,6 +76,8 @@ class MathTypeOptions:
 
 @dataclass(frozen=True)
 class ExportOptions:
+    """Top-level export options for the selected output target."""
+
     target: ExportTarget = "mathtype"
     display_layout: DisplayLayout = "tabbed"
     style: EquationStyle = field(default_factory=EquationStyle)
@@ -72,6 +88,8 @@ class ExportOptions:
 
 @dataclass(frozen=True)
 class ConversionOptions:
+    """Backward-compatible conversion options retained for the public API."""
+
     target: ExportTarget = "mathtype"
     embed_mode: EmbedMode = "alternate-content"
     mathtype_version: MathTypeVersion = "DSMT4"
@@ -116,6 +134,8 @@ class ConversionOptions:
 
 @dataclass(frozen=True)
 class ConversionError:
+    """Error recorded for a formula that could not be converted."""
+
     index: int
     placeholder: str | None
     message: str
@@ -123,6 +143,8 @@ class ConversionError:
 
 @dataclass
 class ConversionSummary:
+    """Summary returned by document conversion and embedding operations."""
+
     found: int = 0
     converted: int = 0
     skipped: int = 0
@@ -135,6 +157,8 @@ class ConversionSummary:
 
 @dataclass(frozen=True)
 class EquationSpec:
+    """MathML equation plus the DOCX placeholder it should replace."""
+
     placeholder: str
     mathml: str
     display: bool = False

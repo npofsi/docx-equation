@@ -1,3 +1,5 @@
+"""Public API for converting MathML into DOCX equation content."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,11 +32,13 @@ from docx_equation.shared.models import (
 
 
 def mathml_to_mtef(mathml: bytes | str, options: OptionsLike = None) -> bytes:
+    """Encode a MathML equation as a MathType MTEF byte stream."""
     opts = normalize_options(options, target="mathtype")
     return encode_mtef(parse_mathml(mathml), opts.mathtype.mathtype_version)
 
 
 def mathml_to_mathtype_ole(mathml: bytes | str, options: OptionsLike = None) -> bytes:
+    """Build a MathType-compatible OLE object from a MathML equation."""
     opts = normalize_options(options, target="mathtype")
     return build_mathtype_ole_object(mathml_to_mtef(mathml, opts), opts.mathtype.prog_id)
 
@@ -46,6 +50,7 @@ def embed_mathml_placeholders(
     options: OptionsLike = None,
     work_dir: str | Path | None = None,
 ) -> ConversionSummary:
+    """Replace DOCX text placeholders with OMML or MathType equations."""
     opts = normalize_options(options, target="mathtype")
     if opts.target == "omml":
         return embed_omml_mathml_placeholders(input_path, output_path, equations, opts, work_dir)
@@ -57,6 +62,7 @@ def build_equation_docx(
     output_path: str | Path,
     options: OptionsLike = None,
 ) -> ConversionSummary:
+    """Build a new DOCX containing one numbered display equation per MathML item."""
     opts = normalize_options(options, target="mathtype")
     if opts.target == "omml":
         return build_omml_equation_docx(equations, output_path, opts)
@@ -68,6 +74,7 @@ def convert_docx(
     output_path: str | Path,
     options: OptionsLike = None,
 ) -> ConversionSummary:
+    """Convert existing OMML equations in a DOCX into MathType-compatible objects."""
     opts = normalize_options(options, target="mathtype")
     mt_opts = opts.mathtype
     legacy_numbering = opts.numbering if opts.numbering != NumberingOptions() else None
@@ -87,6 +94,7 @@ def convert_docx(
 
 
 def inspect_docx(path: str | Path) -> dict[str, int]:
+    """Return a compact count of equation-related parts and XML nodes in a DOCX."""
     with ZipFile(path) as zf:
         names = zf.namelist()
         document_bytes = zf.read("word/document.xml")

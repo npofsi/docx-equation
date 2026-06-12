@@ -1,3 +1,5 @@
+"""DOCX embedding support for MathType-compatible equation objects."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -48,6 +50,7 @@ def embed_mathml_placeholders(
     options: OptionsLike = None,
     work_dir: str | Path | None = None,
 ) -> ConversionSummary:
+    """Replace DOCX placeholders with MathType OLE objects generated from MathML."""
     opts = normalize_options(options, target="mathtype")
     source = Path(input_docx)
     target = Path(output_docx)
@@ -63,6 +66,7 @@ def build_equation_docx(
     output_docx: str | Path,
     options: OptionsLike = None,
 ) -> ConversionSummary:
+    """Build a new DOCX containing MathType display equations."""
     opts = normalize_options(options, target="mathtype")
     target = Path(output_docx)
     target.parent.mkdir(parents=True, exist_ok=True)

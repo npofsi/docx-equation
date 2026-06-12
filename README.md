@@ -166,6 +166,19 @@ python3 -m build
 python3 -m twine check dist/*
 ```
 
+## Documentation
+
+Developer documentation lives in `docs/`.
+
+- `docs/tutorial.md` shows how to create a DOCX with equations from scratch.
+- `docs/api/index.html` links to the `pydoc` API reference.
+
+Regenerate API documentation:
+
+```bash
+python3 docs/generate_pydoc.py
+```
+
 ## License
 
 `docx-equation` is distributed under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`).

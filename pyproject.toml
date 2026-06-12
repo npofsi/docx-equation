@@ -41,6 +41,7 @@ dev = [
 docx-equation = "docx_equation.cli:main"
 
 [project.urls]
+Documentation = "https://github.com/npofsi/docx-equation/tree/main/docs"
 Homepage = "https://github.com/npofsi/docx-equation"
 Repository = "https://github.com/npofsi/docx-equation"
 Issues = "https://github.com/npofsi/docx-equation/issues"
