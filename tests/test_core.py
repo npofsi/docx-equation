@@ -8,6 +8,7 @@ from docx import Document
 
 from docx_equation import (
     ConversionOptions,
+    EquationStyle,
     EquationSpec,
     ExportOptions,
     NumberingOptions,
@@ -15,6 +16,7 @@ from docx_equation import (
     inspect_docx,
     mathml_to_mathtype_ole,
     mathml_to_omml,
+    make_tabbed_equation_paragraph,
 )
 from docx_equation.mathtype.ooxml import NS, build_demo_docx, make_display_equation_paragraph
 from docx_equation.shared.latex import parse_latex_subset
@@ -96,6 +98,39 @@ def test_display_equation_paragraph_uses_center_and_right_tabs():
     assert [tab.get(f"{{{NS['w']}}}val") for tab in tabs] == ["center", "right"]
     assert [tab.get(f"{{{NS['w']}}}pos") for tab in tabs] == ["4479", "8958"]
     assert "(4-1)" in "".join(paragraph.xpath(".//w:t/text()", namespaces=NS))
+
+
+def test_numbering_options_support_sequence_only_format():
+    object_run = etree.Element(f"{{{NS['w']}}}r", nsmap=NS)
+    paragraph = make_tabbed_equation_paragraph(
+        object_run,
+        1,
+        8958,
+        numbering=NumberingOptions(chapter=4, number_format="(1)"),
+        style=EquationStyle(),
+    )
+    document_xml = etree.tostring(paragraph, encoding="unicode")
+    text = "".join(paragraph.xpath(".//w:t/text()", namespaces=NS))
+
+    assert text == "(1)"
+    assert "(4-" not in text
+    assert " SEQ Eq \\r 1 \\* ARABIC " in document_xml
+
+
+def test_numbering_options_support_chapter_sequence_separator():
+    object_run = etree.Element(f"{{{NS['w']}}}r", nsmap=NS)
+    paragraph = make_tabbed_equation_paragraph(
+        object_run,
+        2,
+        8958,
+        numbering=NumberingOptions(chapter=4, number_format="(1SEP1)", separator="."),
+        style=EquationStyle(),
+    )
+    document_xml = etree.tostring(paragraph, encoding="unicode")
+    text = "".join(paragraph.xpath(".//w:t/text()", namespaces=NS))
+
+    assert text == "(4.2)"
+    assert " SEQ Eq \\* ARABIC " in document_xml
 
 
 def test_mathml_to_mathtype_ole_uses_dsmt4_by_default(tmp_path):

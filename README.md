@@ -91,6 +91,13 @@ embed_mathml_placeholders(
 )
 ```
 
+Number display can use a sequence-only format or a chapter-sequence format. `SEP` is controlled by `separator` and defaults to `"-"`:
+
+```python
+NumberingOptions(number_format="(1)")
+NumberingOptions(chapter=4, number_format="(1SEP1)", separator="-")
+```
+
 Build standalone equation documents:
 
 ```python
@@ -134,7 +141,14 @@ docx-equation demo equation_001.mml equation_002.mml -o equations.docx --target 
 Convert a DOCX:
 
 ```bash
-docx-equation convert input.docx -o output.docx --target mathtype --embed-mode alternate-content
+docx-equation convert input.docx -o output.docx --embed-mode alternate-content
+```
+
+Select display-equation numbering:
+
+```bash
+docx-equation demo equation_001.mml -o equations.docx --chapter 4 --number-format "(1SEP1)" --number-separator "-"
+docx-equation demo equation_001.mml -o equations.docx --number-format "(1)"
 ```
 
 Inspect a DOCX:

@@ -42,14 +42,22 @@ def make_tab_run(style: EquationStyle | None = None) -> etree._Element:
 
 
 def make_number_runs(number: int | str, opts: NumberingOptions, style: EquationStyle) -> list[etree._Element]:
-    if isinstance(number, int) and opts.chapter is not None and opts.use_seq_field:
-        return [
-            make_text_run(f"({opts.chapter}{opts.separator}", style),
-            *make_seq_field_runs(number, opts, style),
-            make_text_run(")", style),
-        ]
-    if isinstance(number, int) and opts.chapter is not None:
-        return [make_text_run(f"({opts.chapter}{opts.separator}{number})", style)]
+    if isinstance(number, int):
+        if opts.number_format == "(1SEP1)" and opts.chapter is not None:
+            if opts.use_seq_field:
+                return [
+                    make_text_run(f"({opts.chapter}{opts.separator}", style),
+                    *make_seq_field_runs(number, opts, style),
+                    make_text_run(")", style),
+                ]
+            return [make_text_run(f"({opts.chapter}{opts.separator}{number})", style)]
+        if opts.use_seq_field:
+            return [
+                make_text_run("(", style),
+                *make_seq_field_runs(number, opts, style),
+                make_text_run(")", style),
+            ]
+        return [make_text_run(f"({number})", style)]
     text = str(number)
     if not text.startswith("("):
         text = f"({text})"

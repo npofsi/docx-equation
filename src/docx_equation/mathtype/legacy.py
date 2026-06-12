@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 import tempfile
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -19,6 +20,7 @@ from docx_equation.mathtype.ooxml import (
 from docx_equation.shared.mathml import parse_mathml, render_mathml_files
 from docx_equation.mathtype.mtef import encode_mtef
 from docx_equation.mathtype.ole import build_mathtype_ole_object
+from docx_equation.shared.models import EquationStyle, NumberingOptions
 
 
 OMML_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
@@ -37,6 +39,7 @@ class MathTarget:
     omath_node: etree._Element
     is_display: bool
     equation_number: str | None = None
+    equation_sequence: int | None = None
 
 
 def convert_omml_docx_to_mathtype(
@@ -50,6 +53,8 @@ def convert_omml_docx_to_mathtype(
     preview_pt_per_px: float | None = 0.15,
     display_layout: str = "preserve",
     mathtype_version: str = "DSMT4",
+    numbering: NumberingOptions | None = None,
+    style: EquationStyle | None = None,
 ) -> int:
     source = Path(input_docx)
     target = Path(output_docx)
@@ -68,6 +73,8 @@ def convert_omml_docx_to_mathtype(
                 preview_pt_per_px,
                 display_layout,
                 mathtype_version,
+                numbering,
+                style,
             )
     return _convert(
         source,
@@ -80,6 +87,8 @@ def convert_omml_docx_to_mathtype(
         preview_pt_per_px,
         display_layout,
         mathtype_version,
+        numbering,
+        style,
     )
 
 
@@ -94,6 +103,8 @@ def _convert(
     preview_pt_per_px: float | None,
     display_layout: str,
     mathtype_version: str,
+    numbering: NumberingOptions | None,
+    style: EquationStyle | None,
 ) -> int:
     work_dir.mkdir(parents=True, exist_ok=True)
     mathml_dir = work_dir / "mathml"
@@ -156,10 +167,15 @@ def _convert(
                 prog_id=prog_id,
             )
             if target_info.is_display and target_info.equation_number and display_layout == "tabbed":
+                number: int | str = target_info.equation_number
+                if numbering is not None and target_info.equation_sequence is not None:
+                    number = target_info.equation_sequence
                 replacement = make_display_equation_paragraph(
                     replacement,
-                    target_info.equation_number,
+                    number,
                     text_width_dxa,
+                    numbering=numbering,
+                    style=style,
                 )
             replacement.tail = target_info.replace_node.tail
             parent = target_info.replace_node.getparent()
@@ -203,7 +219,16 @@ def _math_targets(root: etree._Element, display_layout: str = "preserve") -> lis
                 table = _formula_table_for_display(element)
                 if table is not None and id(table) not in seen_tables:
                     seen_tables.add(id(table))
-                    targets.append(MathTarget(table, _omath_for_target(element, True), True, _extract_formula_number(table)))
+                    number = _extract_formula_number(table)
+                    targets.append(
+                        MathTarget(
+                            table,
+                            _omath_for_target(element, True),
+                            True,
+                            number,
+                            _formula_sequence(number),
+                        )
+                    )
                     continue
             targets.append(MathTarget(element, _omath_for_target(element, True), True))
         elif element.tag == omath_tag and not _is_descendant_of(element, math_para_tag):
@@ -250,9 +275,21 @@ def _extract_formula_number(table: etree._Element) -> str | None:
     if len(cells) != 3:
         return None
     text = "".join(cells[2].xpath(".//w:t/text()", namespaces=NS)).strip()
-    if text.startswith("(") and text.endswith(")") and "-" in text:
+    if _formula_sequence(text) is not None:
         return text
     return None
+
+
+def _formula_sequence(text: str | None) -> int | None:
+    if not text:
+        return None
+    stripped = text.strip()
+    if not stripped.startswith("(") or not stripped.endswith(")"):
+        return None
+    numbers = re.findall(r"\d+", stripped[1:-1])
+    if not numbers:
+        return None
+    return int(numbers[-1])
 
 
 def _ancestor(element: etree._Element, tag: str) -> etree._Element | None:

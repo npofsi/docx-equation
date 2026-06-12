@@ -9,6 +9,7 @@ EmbedMode = Literal["alternate-content", "png-preview"]
 MathTypeVersion = Literal["DSMT4", "DSMT6"]
 DisplayLayout = Literal["preserve", "tabbed"]
 ExportTarget = Literal["omml", "mathtype"]
+NumberingFormat = Literal["(1)", "(1SEP1)"]
 
 
 @dataclass(frozen=True)
@@ -24,6 +25,7 @@ class EquationStyle:
 class NumberingOptions:
     enabled: bool = True
     layout: Literal["tabbed"] = "tabbed"
+    number_format: NumberingFormat = "(1SEP1)"
     chapter: int | None = None
     sequence_name: str = "Eq"
     separator: str = "-"

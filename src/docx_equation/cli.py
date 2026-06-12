@@ -108,6 +108,8 @@ def _add_common_options(parser: argparse.ArgumentParser, *, include_target: bool
     parser.add_argument("--font-size", type=float, default=10.5)
     parser.add_argument("--number-font-size", type=float, default=10.5)
     parser.add_argument("--chapter", type=int)
+    parser.add_argument("--number-format", choices=["(1)", "(1SEP1)"], default="(1SEP1)")
+    parser.add_argument("--number-separator", default="-")
     parser.add_argument("--inline-height", type=float, default=12.5)
     parser.add_argument("--display-height", type=float, default=21.0)
     parser.add_argument("--max-width", type=float, default=360.0)
@@ -121,7 +123,11 @@ def _options(args: argparse.Namespace, *, target: str | None = None, display_lay
         font_size_pt=args.font_size,
         number_font_size_pt=args.number_font_size,
     )
-    numbering = NumberingOptions(chapter=getattr(args, "chapter", None))
+    numbering = NumberingOptions(
+        chapter=getattr(args, "chapter", None),
+        number_format=args.number_format,
+        separator=args.number_separator,
+    )
     mathtype = MathTypeOptions(
         embed_mode=args.embed_mode,
         mathtype_version=args.mathtype_version,

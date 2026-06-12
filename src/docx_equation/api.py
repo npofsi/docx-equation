@@ -23,6 +23,7 @@ from docx_equation.shared.models import (
     ConversionSummary,
     EquationSpec,
     ExportOptions,
+    NumberingOptions,
     OptionsLike,
     normalize_options,
 )
@@ -69,6 +70,7 @@ def convert_docx(
 ) -> ConversionSummary:
     opts = normalize_options(options, target="mathtype")
     mt_opts = opts.mathtype
+    legacy_numbering = opts.numbering if opts.numbering != NumberingOptions() else None
     count = convert_omml_docx_to_mathtype(
         input_path,
         output_path,
@@ -78,6 +80,8 @@ def convert_docx(
         preview_pt_per_px=mt_opts.preview_pt_per_px,
         display_layout=opts.display_layout,
         mathtype_version=mt_opts.mathtype_version,
+        numbering=legacy_numbering,
+        style=opts.style,
     )
     return ConversionSummary(found=count, converted=count)
 

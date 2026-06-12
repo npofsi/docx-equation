@@ -238,18 +238,20 @@ def _object_run(
 
 def make_display_equation_paragraph(
     object_run: etree._Element,
-    number: str,
+    number: int | str,
     text_width_dxa: int,
     *,
     before_dxa: int = 80,
     after_dxa: int = 80,
+    numbering: NumberingOptions | None = None,
+    style: EquationStyle | None = None,
 ) -> etree._Element:
     return make_tabbed_equation_paragraph(
         object_run,
         number,
         text_width_dxa,
-        numbering=NumberingOptions(before_dxa=before_dxa, after_dxa=after_dxa, use_seq_field=False),
-        style=EquationStyle(),
+        numbering=numbering or NumberingOptions(before_dxa=before_dxa, after_dxa=after_dxa, use_seq_field=False),
+        style=style or EquationStyle(),
     )
 
 
