@@ -62,7 +62,7 @@ def render_mathml_files(
             html_path = tmp_dir / f"{source.stem}.html"
             raw_png = tmp_dir / f"{source.stem}.raw.png"
             final_png = target_dir / f"{source.stem}.png"
-            html_path.write_text(_html(source.read_text(encoding="utf-8"), font_px), encoding="utf-8")
+            html_path.write_text(_html(_mathml_for_html(source.read_text(encoding="utf-8")), font_px), encoding="utf-8")
             subprocess.run(
                 [
                     str(chrome),
@@ -229,6 +229,52 @@ def _html(mathml: str, font_px: int) -> str:
 <body><div class="box">{mathml}</div></body>
 </html>
 """
+
+
+def _mathml_for_html(mathml: str) -> str:
+    """Serialize MathML with a default namespace for browser HTML parsing."""
+    parser = etree.XMLParser(resolve_entities=False, recover=True, remove_blank_text=False)
+    root = etree.fromstring(mathml.encode("utf-8"), parser)
+    normalized = _clone_mathml_element(root, is_root=True)
+    return etree.tostring(normalized, encoding="unicode")
+
+
+def _clone_mathml_element(element: etree._Element, *, is_root: bool = False) -> etree._Element:
+    tag = etree.QName(element).localname
+    if tag == "mfenced":
+        return _clone_mfenced_element(element)
+    nsmap = {None: MATHML_NS} if is_root else None
+    clone = etree.Element(f"{{{MATHML_NS}}}{tag}", nsmap=nsmap)
+    clone.text = element.text
+    clone.tail = element.tail
+    for name, value in element.attrib.items():
+        clone.set(name, value)
+    for child in element:
+        clone.append(_clone_mathml_element(child))
+    return clone
+
+
+def _clone_mfenced_element(element: etree._Element) -> etree._Element:
+    clone = etree.Element(f"{{{MATHML_NS}}}mrow")
+    open_char = element.get("open", "(")
+    close_char = element.get("close", ")")
+    separators = element.get("separators", "")
+    clone.append(_mathml_operator(open_char))
+    children = list(element)
+    for index, child in enumerate(children):
+        clone.append(_clone_mathml_element(child))
+        if index < len(children) - 1 and separators:
+            separator = separators[min(index, len(separators) - 1)]
+            if separator:
+                clone.append(_mathml_operator(separator))
+    clone.append(_mathml_operator(close_char))
+    return clone
+
+
+def _mathml_operator(text: str) -> etree._Element:
+    element = etree.Element(f"{{{MATHML_NS}}}mo")
+    element.text = text
+    return element
 
 
 def _crop_png(source: Path, target: Path, padding_px: int = 8) -> None:

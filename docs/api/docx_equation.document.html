@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module docx_equation.document</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title"><a href="docx_equation.html" class="white">docx_equation</a>.document</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="../../src/docx_equation/document.py">src/docx_equation/document.py</a></td></tr></table>
+    <p><span class="code">Developer-friendly&nbsp;helpers&nbsp;for&nbsp;writing&nbsp;equation&nbsp;DOCX&nbsp;files&nbsp;with&nbsp;python-docx.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="tempfile.html">tempfile</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="docx_equation.document.html#EquationDocument">EquationDocument</a>
+</dt><dt class="heading-text"><a href="docx_equation.document.html#EquationRegistry">EquationRegistry</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="EquationDocument">class <strong>EquationDocument</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#EquationDocument">EquationDocument</a>(document=None,&nbsp;prefix:&nbsp;'str'&nbsp;=&nbsp;'DOCX_EQ')&nbsp;-&amp;gt;&nbsp;'None'<br>
+&nbsp;<br>
+Small&nbsp;wrapper&nbsp;combining&nbsp;a&nbsp;``python-docx``&nbsp;document&nbsp;and&nbsp;an&nbsp;equation&nbsp;registry.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="EquationDocument-__getattr__"><strong>__getattr__</strong></a>(self, name: 'str')</dt></dl>
+
+<dl><dt><a name="EquationDocument-__init__"><strong>__init__</strong></a>(self, document=None, prefix: 'str' = 'DOCX_EQ') -&gt; 'None'</dt><dd><span class="code">Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</span></dd></dl>
+
+<dl><dt><a name="EquationDocument-add_display_equation"><strong>add_display_equation</strong></a>(
+    self,
+    mathml: 'str',
+    number: 'int | str | None' = None,
+    style: 'str | None' = None
+) -&gt; 'EquationSpec'</dt><dd><span class="code">Add&nbsp;a&nbsp;display&nbsp;equation&nbsp;paragraph.</span></dd></dl>
+
+<dl><dt><a name="EquationDocument-add_inline_equation"><strong>add_inline_equation</strong></a>(self, paragraph, mathml: 'str') -&gt; 'EquationSpec'</dt><dd><span class="code">Add&nbsp;an&nbsp;inline&nbsp;equation&nbsp;to&nbsp;``paragraph``.</span></dd></dl>
+
+<dl><dt><a name="EquationDocument-save"><strong>save</strong></a>(
+    self,
+    output_path: 'str | Path',
+    options: 'OptionsLike' = None,
+    work_dir: 'str | Path | None' = None
+) -&gt; 'ConversionSummary'</dt><dd><span class="code">Save&nbsp;the&nbsp;document&nbsp;and&nbsp;embed&nbsp;registered&nbsp;equations.</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+</td></tr></table> <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="EquationRegistry">class <strong>EquationRegistry</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#EquationRegistry">EquationRegistry</a>(prefix:&nbsp;'str'&nbsp;=&nbsp;'DOCX_EQ')&nbsp;-&amp;gt;&nbsp;'None'<br>
+&nbsp;<br>
+Collect&nbsp;MathML&nbsp;equations&nbsp;while&nbsp;composing&nbsp;a&nbsp;``python-docx``&nbsp;document.<br>
+&nbsp;<br>
+The&nbsp;registry&nbsp;writes&nbsp;hidden&nbsp;temporary&nbsp;marker&nbsp;runs&nbsp;into&nbsp;the&nbsp;in-memory<br>
+document&nbsp;and&nbsp;replaces&nbsp;them&nbsp;during&nbsp;``save``.&nbsp;Calling&nbsp;code&nbsp;does&nbsp;not&nbsp;need&nbsp;to<br>
+create&nbsp;or&nbsp;track&nbsp;placeholder&nbsp;strings&nbsp;directly.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="EquationRegistry-__init__"><strong>__init__</strong></a>(self, prefix: 'str' = 'DOCX_EQ') -&gt; 'None'</dt><dd><span class="code">Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</span></dd></dl>
+
+<dl><dt><a name="EquationRegistry-__iter__"><strong>__iter__</strong></a>(self) -&gt; 'Iterator[EquationSpec]'</dt></dl>
+
+<dl><dt><a name="EquationRegistry-__len__"><strong>__len__</strong></a>(self) -&gt; 'int'</dt></dl>
+
+<dl><dt><a name="EquationRegistry-add"><strong>add</strong></a>(
+    self,
+    paragraph,
+    mathml: 'str',
+    *,
+    display: 'bool' = False,
+    number: 'int | str | None' = None
+) -&gt; 'EquationSpec'</dt><dd><span class="code">Add&nbsp;an&nbsp;equation&nbsp;marker&nbsp;run&nbsp;and&nbsp;return&nbsp;its&nbsp;collected&nbsp;specification.</span></dd></dl>
+
+<dl><dt><a name="EquationRegistry-add_display"><strong>add_display</strong></a>(
+    self,
+    document_or_paragraph,
+    mathml: 'str',
+    number: 'int | str | None' = None,
+    style: 'str | None' = None
+) -&gt; 'EquationSpec'</dt><dd><span class="code">Add&nbsp;a&nbsp;display&nbsp;equation&nbsp;marker&nbsp;to&nbsp;a&nbsp;document&nbsp;or&nbsp;existing&nbsp;paragraph.</span></dd></dl>
+
+<dl><dt><a name="EquationRegistry-add_inline"><strong>add_inline</strong></a>(self, paragraph, mathml: 'str') -&gt; 'EquationSpec'</dt><dd><span class="code">Add&nbsp;an&nbsp;inline&nbsp;equation&nbsp;marker&nbsp;to&nbsp;an&nbsp;existing&nbsp;paragraph.</span></dd></dl>
+
+<dl><dt><a name="EquationRegistry-save"><strong>save</strong></a>(
+    self,
+    document,
+    output_path: 'str | Path',
+    options: 'OptionsLike' = None,
+    work_dir: 'str | Path | None' = None
+) -&gt; 'ConversionSummary'</dt><dd><span class="code">Save&nbsp;``document``&nbsp;and&nbsp;embed&nbsp;all&nbsp;registered&nbsp;equations.</span></dd></dl>
+
+<hr>
+Readonly properties defined here:<br>
+<dl><dt><strong>equations</strong></dt>
+<dd><span class="code">Return&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;collected&nbsp;equation&nbsp;specifications.</span></dd>
+</dl>
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object</span></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>Iterator</strong> = typing.Iterator<br>
+<strong>OptionsLike</strong> = docx_equation.shared.models.ExportOptions | docx... | docx_equation.shared.models.OmmlOptions | None</td></tr></table>
+</body></html>

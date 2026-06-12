@@ -6,6 +6,7 @@ from .api import (
     mathml_to_mathtype_ole,
     mathml_to_mtef,
 )
+from .document import EquationDocument, EquationRegistry
 from .mathtype.legacy import convert_omml_docx_to_mathtype
 from .mathtype.mtef import (
     BigOperator,
@@ -66,6 +67,8 @@ __all__ = [
     "ConversionError",
     "ConversionOptions",
     "ConversionSummary",
+    "EquationDocument",
+    "EquationRegistry",
     "EquationSpec",
     "EquationStyle",
     "ExportOptions",

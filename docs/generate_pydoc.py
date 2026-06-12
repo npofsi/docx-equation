@@ -18,6 +18,7 @@ MODULES = [
     "docx_equation",
     "docx_equation.api",
     "docx_equation.cli",
+    "docx_equation.document",
     "docx_equation.shared",
     "docx_equation.shared.models",
     "docx_equation.shared.mathml",
@@ -88,4 +89,3 @@ def _write_api_index() -> None:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

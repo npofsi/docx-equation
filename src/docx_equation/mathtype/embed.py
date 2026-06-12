@@ -39,7 +39,6 @@ from docx_equation.shared.ooxml import (
 REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
 MC_NS = "http://schemas.openxmlformats.org/markup-compatibility/2006"
-DXEQ_NS = "https://github.com/npofsi/docx-equation/mathtype"
 W_NS = NS["w"]
 
 
@@ -212,8 +211,8 @@ def _write_fallback_preview(path: Path) -> None:
 
 
 def _alternate_content(choice_child: etree._Element, fallback_child: etree._Element) -> etree._Element:
-    alternate = etree.Element(f"{{{MC_NS}}}AlternateContent", nsmap={"mc": MC_NS, "dxeq": DXEQ_NS})
-    choice = etree.SubElement(alternate, f"{{{MC_NS}}}Choice", {"Requires": "dxeq"})
+    alternate = etree.Element(f"{{{MC_NS}}}AlternateContent", nsmap={"mc": MC_NS, "w14": NS["w14"]})
+    choice = etree.SubElement(alternate, f"{{{MC_NS}}}Choice", {"Requires": "w14"})
     choice.append(choice_child)
     fallback = etree.SubElement(alternate, f"{{{MC_NS}}}Fallback")
     fallback.append(fallback_child)
@@ -221,9 +220,10 @@ def _alternate_content(choice_child: etree._Element, fallback_child: etree._Elem
 
 
 def _ensure_mc(root: etree._Element) -> etree._Element:
-    if root.nsmap.get("dxeq") != DXEQ_NS:
+    if root.nsmap.get("mc") != MC_NS or root.nsmap.get("w14") != NS["w14"]:
         nsmap = dict(root.nsmap)
-        nsmap["dxeq"] = DXEQ_NS
+        nsmap["mc"] = MC_NS
+        nsmap["w14"] = NS["w14"]
         replacement = etree.Element(root.tag, nsmap=nsmap)
         replacement.text = root.text
         replacement.tail = root.tail
@@ -235,6 +235,6 @@ def _ensure_mc(root: etree._Element) -> etree._Element:
     ignorable_attr = f"{{{MC_NS}}}Ignorable"
     current = root.get(ignorable_attr, "")
     values = {item for item in current.split() if item}
-    values.add("dxeq")
+    values.add("w14")
     root.set(ignorable_attr, " ".join(sorted(values)))
     return root

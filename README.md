@@ -8,7 +8,8 @@
 - MathML to Word OMML conversion.
 - MathML to MathType MTEF and `Equation.DSMT4` OLE objects.
 - Optional `Equation.DSMT6` OLE generation.
-- DOCX placeholder replacement for OMML or MathType output.
+- `EquationRegistry` and `EquationDocument` helpers for composing equations directly with `python-docx`.
+- Hidden-anchor equation registration plus a lower-level placeholder replacement API for generated templates.
 - `mc:AlternateContent` MathType embedding with OMML fallback.
 - PNG-preview MathType embedding.
 - Shared tabbed display-equation numbering with centered formulas and right-aligned labels.
@@ -32,6 +33,7 @@ python3 -m pip install -e ".[dev]"
 
 ```text
 docx_equation.shared      MathML parser, LaTeX subset parser, models, numbering helpers
+docx_equation.document    python-docx integration helpers
 docx_equation.omml        MathML to OMML conversion and DOCX embedding
 docx_equation.mathtype    MTEF/OLE generation, preview rendering, DOCX embedding
 docx_equation.api         Public routing API for selected export targets
@@ -40,27 +42,27 @@ docx_equation.cli         Command-line interface
 
 ## Python API
 
-Create OMML or MathType output from the same MathML placeholders:
+Create OMML or MathType output while composing a document with `python-docx`:
 
 ```python
+from docx import Document
+
 from docx_equation import (
-    EquationSpec,
+    EquationRegistry,
     EquationStyle,
     ExportOptions,
     MathTypeOptions,
     NumberingOptions,
     OmmlOptions,
-    embed_mathml_placeholders,
 )
 
-equations = [
-    EquationSpec(
-        placeholder="{{DOCX_EQ_001}}",
-        mathml="<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>x</mi></math>",
-        display=True,
-        number=1,
-    )
-]
+mathml = "<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>x</mi></math>"
+
+doc = Document()
+registry = EquationRegistry()
+p = doc.add_paragraph("Inline equation: ")
+registry.add_inline(p, mathml)
+registry.add_display(doc, mathml, number=1)
 
 common = {
     "style": EquationStyle(
@@ -72,17 +74,15 @@ common = {
     "numbering": NumberingOptions(chapter=4, sequence_name="Eq"),
 }
 
-embed_mathml_placeholders(
-    "input.docx",
+registry.save(
+    doc,
     "output_omml.docx",
-    equations,
     ExportOptions(target="omml", omml=OmmlOptions(font_family="Times New Roman"), **common),
 )
 
-embed_mathml_placeholders(
-    "input.docx",
+registry.save(
+    doc,
     "output_mathtype.docx",
-    equations,
     ExportOptions(
         target="mathtype",
         mathtype=MathTypeOptions(embed_mode="alternate-content", mathtype_version="DSMT4"),
@@ -90,6 +90,13 @@ embed_mathml_placeholders(
     ),
 )
 ```
+
+`EquationRegistry` inserts hidden internal anchors and resolves them when the
+document is saved, so application code does not need to create visible
+placeholder text.
+
+The lower-level `embed_mathml_placeholders(...)` API remains available when a
+workflow already produces explicit placeholder runs.
 
 Number display can use a sequence-only format or a chapter-sequence format. `SEP` is controlled by `separator` and defaults to `"-"`:
 

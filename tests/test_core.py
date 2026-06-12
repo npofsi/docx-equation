@@ -8,6 +8,7 @@ from docx import Document
 
 from docx_equation import (
     ConversionOptions,
+    EquationRegistry,
     EquationStyle,
     EquationSpec,
     ExportOptions,
@@ -20,9 +21,11 @@ from docx_equation import (
 )
 from docx_equation.mathtype.ooxml import NS, build_demo_docx, make_display_equation_paragraph
 from docx_equation.shared.latex import parse_latex_subset
-from docx_equation.shared.mathml import parse_mathml
+from docx_equation.shared.mathml import _mathml_for_html, parse_mathml
 from docx_equation.mathtype.mtef import encode_mtef
 from docx_equation.mathtype.ole import build_mathtype_ole_object
+
+MC_NS = "http://schemas.openxmlformats.org/markup-compatibility/2006"
 
 
 def test_ole_contains_mathtype_streams(tmp_path):
@@ -69,6 +72,31 @@ def test_mathml_parser_supports_section_formula_subset():
     assert mtef.startswith(b"\x05\x01\x00\x06")
     assert b"DSMT4" in mtef
     assert b"DSMT6" in encode_mtef(expr, "DSMT6")
+
+
+def test_mathml_preview_serialization_removes_prefixed_elements():
+    html_mathml = _mathml_for_html(
+        """<ns0:math xmlns:ns0="http://www.w3.org/1998/Math/MathML">
+        <ns0:msup><ns0:mi>x</ns0:mi><ns0:mn>2</ns0:mn></ns0:msup>
+        </ns0:math>"""
+    )
+
+    assert "<math" in html_mathml
+    assert "<msup>" in html_mathml
+    assert "ns0:" not in html_mathml
+    assert 'xmlns="http://www.w3.org/1998/Math/MathML"' in html_mathml
+
+
+def test_mathml_preview_serialization_expands_mfenced():
+    html_mathml = _mathml_for_html(
+        """<math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mfenced open="[" close="]"><mi>x</mi><mi>y</mi></mfenced>
+        </math>"""
+    )
+
+    assert "<mfenced" not in html_mathml
+    assert "<mo>[</mo>" in html_mathml
+    assert "<mo>]</mo>" in html_mathml
 
 
 def test_latex_parser_supports_big_operator_and_decoration():
@@ -187,12 +215,65 @@ def test_embed_mathml_placeholders_adds_alternate_content_and_ole(tmp_path):
         assert any(name.startswith("word/embeddings/oleObjectMathType") for name in names)
         assert "AlternateContent" in document_xml
         assert "Equation.DSMT4" in document_xml
-        assert document_root.nsmap["dxeq"] == "https://github.com/npofsi/docx-equation/mathtype"
-        assert "dxeq" in document_root.get("{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable").split()
+        assert document_root.nsmap["w14"] == NS["w14"]
+        assert "w14" in document_root.get(f"{{{MC_NS}}}Ignorable").split()
+        assert document_root.xpath(".//mc:Choice[@Requires='w14']", namespaces={"mc": MC_NS})
+        assert "dxeq" not in document_xml
         assert placeholder not in document_xml
     counts = inspect_docx(output)
     assert counts["alternate_content"] == 1
     assert counts["embeddings"] == 1
+
+
+def test_equation_registry_saves_mathtype_docx_without_manual_placeholder(tmp_path):
+    output = tmp_path / "registry.docx"
+    mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <mfrac><mi>a</mi><mi>b</mi></mfrac><mo>=</mo><mi>c</mi>
+    </math>"""
+
+    doc = Document()
+    registry = EquationRegistry()
+    paragraph = doc.add_paragraph("Inline equation: ")
+    registry.add_inline(paragraph, mathml)
+    registry.add_display(doc, mathml, number=1)
+
+    summary = registry.save(
+        doc,
+        output,
+        ExportOptions(target="mathtype", numbering=NumberingOptions(chapter=4)),
+        tmp_path / "work",
+    )
+    assert summary.converted == 2
+
+    with ZipFile(output) as zf:
+        names = set(zf.namelist())
+        document_root = etree.fromstring(zf.read("word/document.xml"))
+        document_xml = etree.tostring(document_root, encoding="unicode")
+        tabs = document_root.xpath(".//w:tab[@w:val]", namespaces=NS)
+        assert sum(name.startswith("word/embeddings/") for name in names) == 2
+        assert len(document_root.xpath(".//mc:AlternateContent", namespaces={"mc": MC_NS})) == 2
+        assert [tab.get(f"{{{NS['w']}}}val") for tab in tabs[:2]] == ["center", "right"]
+        assert "{{DOCX_EQ_" not in document_xml
+
+
+def test_equation_registry_uses_hidden_internal_anchor(tmp_path):
+    base = tmp_path / "base.docx"
+    mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>x</mi></math>"""
+
+    doc = Document()
+    registry = EquationRegistry()
+    registry.add_inline(doc.add_paragraph("Inline: "), mathml)
+    doc.save(base)
+
+    with ZipFile(base) as zf:
+        document_root = etree.fromstring(zf.read("word/document.xml"))
+        marker_runs = [
+            run
+            for run in document_root.xpath(".//w:r", namespaces=NS)
+            if "{{DOCX_EQ_" in "".join(run.xpath(".//w:t/text()", namespaces=NS))
+        ]
+        assert len(marker_runs) == 1
+        assert marker_runs[0].xpath("./w:rPr/w:vanish", namespaces=NS)
 
 
 def test_embed_mathml_placeholders_can_emit_omml_with_tabbed_numbering(tmp_path):
