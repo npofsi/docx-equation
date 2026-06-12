@@ -182,10 +182,13 @@ def test_embed_mathml_placeholders_adds_alternate_content_and_ole(tmp_path):
 
     with ZipFile(output) as zf:
         names = set(zf.namelist())
-        document_xml = zf.read("word/document.xml").decode("utf-8")
+        document_root = etree.fromstring(zf.read("word/document.xml"))
+        document_xml = etree.tostring(document_root, encoding="unicode")
         assert any(name.startswith("word/embeddings/oleObjectMathType") for name in names)
         assert "AlternateContent" in document_xml
         assert "Equation.DSMT4" in document_xml
+        assert document_root.nsmap["dxeq"] == "https://github.com/npofsi/docx-equation/mathtype"
+        assert "dxeq" in document_root.get("{http://schemas.openxmlformats.org/markup-compatibility/2006}Ignorable").split()
         assert placeholder not in document_xml
     counts = inspect_docx(output)
     assert counts["alternate_content"] == 1

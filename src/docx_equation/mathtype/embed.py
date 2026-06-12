@@ -104,7 +104,7 @@ def _embed(
         rels_root = etree.fromstring(zin.read("word/_rels/document.xml.rels"), parser)
         content_types_root = etree.fromstring(zin.read("[Content_Types].xml"), parser)
 
-        _ensure_mc(document_root)
+        document_root = _ensure_mc(document_root)
         ensure_default(content_types_root, "bin", "application/vnd.openxmlformats-officedocument.oleObject")
         ensure_default(content_types_root, "png", "image/png")
 
@@ -220,9 +220,21 @@ def _alternate_content(choice_child: etree._Element, fallback_child: etree._Elem
     return alternate
 
 
-def _ensure_mc(root: etree._Element) -> None:
+def _ensure_mc(root: etree._Element) -> etree._Element:
+    if root.nsmap.get("dxeq") != DXEQ_NS:
+        nsmap = dict(root.nsmap)
+        nsmap["dxeq"] = DXEQ_NS
+        replacement = etree.Element(root.tag, nsmap=nsmap)
+        replacement.text = root.text
+        replacement.tail = root.tail
+        for name, value in root.attrib.items():
+            replacement.set(name, value)
+        replacement[:] = list(root)
+        root = replacement
+
     ignorable_attr = f"{{{MC_NS}}}Ignorable"
     current = root.get(ignorable_attr, "")
     values = {item for item in current.split() if item}
     values.add("dxeq")
     root.set(ignorable_attr, " ".join(sorted(values)))
+    return root
