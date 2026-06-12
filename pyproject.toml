@@ -3,8 +3,8 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mt-toolkit"
-version = "0.2.0"
+name = "docx-equation"
+version = "0.3.0"
 description = "Tools for generating MathType-compatible equation objects and DOCX equation layouts from MathML."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -38,12 +38,12 @@ dev = [
 ]
 
 [project.scripts]
-mt-toolkit = "mt_toolkit.cli:main"
+docx-equation = "docx_equation.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/npofsi/mt_toolkit"
-Repository = "https://github.com/npofsi/mt_toolkit"
-Issues = "https://github.com/npofsi/mt_toolkit/issues"
+Homepage = "https://github.com/npofsi/docx-equation"
+Repository = "https://github.com/npofsi/docx-equation"
+Issues = "https://github.com/npofsi/docx-equation/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -8,7 +8,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from lxml import etree
 from PIL import Image
 
-from .docx_embed import (
+from docx_equation.mathtype.ooxml import (
     IMAGE_REL,
     OLE_REL,
     _add_relationship,
@@ -16,9 +16,9 @@ from .docx_embed import (
     make_display_equation_paragraph,
     make_object_run,
 )
-from .mathml import parse_mathml, render_mathml_files
-from .mtef import encode_mtef
-from .ole import build_mathtype_ole_object
+from docx_equation.shared.mathml import parse_mathml, render_mathml_files
+from docx_equation.mathtype.mtef import encode_mtef
+from docx_equation.mathtype.ole import build_mathtype_ole_object
 
 
 OMML_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
@@ -56,7 +56,7 @@ def convert_omml_docx_to_mathtype(
     target.parent.mkdir(parents=True, exist_ok=True)
 
     if work_dir is None:
-        with tempfile.TemporaryDirectory(prefix="mt_toolkit_convert_") as tmp:
+        with tempfile.TemporaryDirectory(prefix="docx_equation_convert_") as tmp:
             return _convert(
                 source,
                 target,

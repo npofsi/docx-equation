@@ -8,18 +8,36 @@ from docx import Document
 from lxml import etree
 from PIL import Image, ImageDraw
 
-from mt_toolkit.docx_embed import IMAGE_REL, NS, OLE_REL, _add_relationship, _ensure_default, make_object_run
-from mt_toolkit.domain.models import ConversionOptions, ConversionSummary, EquationSpec
-from mt_toolkit.infrastructure.ooxml.mathml_to_omml import mathml_to_omml
-from mt_toolkit.mathml import render_mathml_files
-from mt_toolkit.mtef import encode_mtef
-from mt_toolkit.ole import build_mathtype_ole_object
+from docx_equation.mathtype.ooxml import make_object_run
+from docx_equation.omml import mathml_to_omml
+from docx_equation.shared.mathml import parse_mathml, render_mathml_files
+from docx_equation.mathtype.mtef import encode_mtef
+from docx_equation.mathtype.ole import build_mathtype_ole_object
+from docx_equation.shared.models import (
+    ConversionSummary,
+    EquationSpec,
+    ExportOptions,
+    MathTypeOptions,
+    OptionsLike,
+    normalize_options,
+)
+from docx_equation.shared.numbering import make_tabbed_equation_paragraph
+from docx_equation.shared.ooxml import (
+    IMAGE_REL,
+    NS,
+    OLE_REL,
+    ancestor_paragraph,
+    add_relationship,
+    document_text_width_dxa,
+    ensure_default,
+    find_placeholder_run,
+)
 
 
 REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
 MC_NS = "http://schemas.openxmlformats.org/markup-compatibility/2006"
-MTYPE_NS = "https://github.com/npofsi/mt-toolkit/mathtype"
+DXEQ_NS = "https://github.com/npofsi/docx-equation/mathtype"
 W_NS = NS["w"]
 
 
@@ -27,15 +45,15 @@ def embed_mathml_placeholders(
     input_docx: str | Path,
     output_docx: str | Path,
     equations: list[EquationSpec],
-    options: ConversionOptions | None = None,
+    options: OptionsLike = None,
     work_dir: str | Path | None = None,
 ) -> ConversionSummary:
-    opts = options or ConversionOptions()
+    opts = normalize_options(options, target="mathtype")
     source = Path(input_docx)
     target = Path(output_docx)
     target.parent.mkdir(parents=True, exist_ok=True)
     if work_dir is None:
-        with tempfile.TemporaryDirectory(prefix="mt_toolkit_embed_") as tmp:
+        with tempfile.TemporaryDirectory(prefix="docx_equation_embed_") as tmp:
             return _embed(source, target, equations, opts, Path(tmp))
     return _embed(source, target, equations, opts, Path(work_dir))
 
@@ -43,20 +61,20 @@ def embed_mathml_placeholders(
 def build_equation_docx(
     equations: list[str],
     output_docx: str | Path,
-    options: ConversionOptions | None = None,
+    options: OptionsLike = None,
 ) -> ConversionSummary:
-    opts = options or ConversionOptions()
+    opts = normalize_options(options, target="mathtype")
     target = Path(output_docx)
     target.parent.mkdir(parents=True, exist_ok=True)
     specs: list[EquationSpec] = []
-    with tempfile.TemporaryDirectory(prefix="mt_toolkit_docx_") as tmp:
+    with tempfile.TemporaryDirectory(prefix="docx_equation_docx_") as tmp:
         base = Path(tmp) / "base.docx"
         doc = Document()
         for index, mathml in enumerate(equations, 1):
-            placeholder = f"{{{{MT_EQ_{index:03d}}}}}"
+            placeholder = f"{{{{DOCX_EQ_{index:03d}}}}}"
             paragraph = doc.add_paragraph()
             paragraph.add_run(placeholder)
-            specs.append(EquationSpec(placeholder=placeholder, mathml=mathml, display=True))
+            specs.append(EquationSpec(placeholder=placeholder, mathml=mathml, display=True, number=index))
         doc.save(base)
         return embed_mathml_placeholders(base, target, specs, opts, Path(tmp) / "work")
 
@@ -65,7 +83,7 @@ def _embed(
     source: Path,
     target: Path,
     equations: list[EquationSpec],
-    opts: ConversionOptions,
+    opts: ExportOptions,
     work_dir: Path,
 ) -> ConversionSummary:
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -83,30 +101,31 @@ def _embed(
         content_types_root = etree.fromstring(zin.read("[Content_Types].xml"), parser)
 
         _ensure_mc(document_root)
-        _ensure_default(content_types_root, "bin", "application/vnd.openxmlformats-officedocument.oleObject")
-        _ensure_default(content_types_root, "png", "image/png")
+        ensure_default(content_types_root, "bin", "application/vnd.openxmlformats-officedocument.oleObject")
+        ensure_default(content_types_root, "png", "image/png")
 
         for index, equation in enumerate(equations, 1):
             (mathml_dir / f"equation_{index:03d}.mml").write_text(equation.mathml, encoding="utf-8")
 
-        _render_previews(mathml_dir, preview_dir, opts)
+        mt_opts = opts.mathtype
+        _render_previews(mathml_dir, preview_dir, mt_opts)
 
         media_entries: list[tuple[str, bytes]] = []
         ole_entries: list[tuple[str, bytes]] = []
 
         for index, equation in enumerate(equations, 1):
             try:
-                placeholder_run = _find_placeholder_run(document_root, equation.placeholder)
+                placeholder_run = find_placeholder_run(document_root, equation.placeholder)
                 preview_path = preview_dir / f"equation_{index:03d}.png"
                 width_px, height_px = Image.open(preview_path).size
 
                 image_name = f"mathtype_preview_{index:03d}.png"
                 ole_name = f"oleObjectMathType{index:03d}.bin"
-                image_rel_id = _add_relationship(rels_root, IMAGE_REL, f"media/{image_name}")
-                ole_rel_id = _add_relationship(rels_root, OLE_REL, f"embeddings/{ole_name}")
+                image_rel_id = add_relationship(rels_root, IMAGE_REL, f"media/{image_name}")
+                ole_rel_id = add_relationship(rels_root, OLE_REL, f"embeddings/{ole_name}")
 
-                mtef = encode_mtef(_parse_mathml_expr(equation.mathml), opts.mathtype_version)
-                ole_bytes = build_mathtype_ole_object(mtef, opts.prog_id)
+                mtef = encode_mtef(parse_mathml(equation.mathml), mt_opts.mathtype_version)
+                ole_bytes = build_mathtype_ole_object(mtef, mt_opts.prog_id)
                 ole_entries.append((f"word/embeddings/{ole_name}", ole_bytes))
                 media_entries.append((f"word/media/{image_name}", preview_path.read_bytes()))
                 (ole_dir / ole_name).write_bytes(ole_bytes)
@@ -118,19 +137,36 @@ def _embed(
                     height_px,
                     index=index,
                     display=equation.display,
-                    inline_height_pt=opts.inline_height_pt,
-                    display_height_pt=opts.display_height_pt,
-                    max_width_pt=opts.max_width_pt,
-                    preview_pt_per_px=opts.preview_pt_per_px,
+                    inline_height_pt=mt_opts.inline_height_pt,
+                    display_height_pt=mt_opts.display_height_pt,
+                    max_width_pt=mt_opts.max_width_pt,
+                    preview_pt_per_px=mt_opts.preview_pt_per_px,
                     vertical_align="middle" if equation.display else None,
-                    prog_id=opts.prog_id,
+                    prog_id=mt_opts.prog_id,
                 )
-                if opts.embed_mode == "alternate-content":
-                    fallback = mathml_to_omml(equation.mathml, display=equation.display)
+                if mt_opts.embed_mode == "alternate-content":
+                    fallback = mathml_to_omml(
+                        equation.mathml,
+                        display=equation.display and equation.number is None,
+                        options=opts.omml,
+                    )
                     replacement = _alternate_content(replacement, fallback)
-                replacement.tail = placeholder_run.tail
-                parent = placeholder_run.getparent()
-                parent.replace(placeholder_run, replacement)
+                if equation.display and equation.number is not None and opts.display_layout == "tabbed":
+                    paragraph = make_tabbed_equation_paragraph(
+                        replacement,
+                        equation.number,
+                        document_text_width_dxa(document_root),
+                        numbering=opts.numbering,
+                        style=opts.style,
+                    )
+                    placeholder_paragraph = ancestor_paragraph(placeholder_run)
+                    if placeholder_paragraph is None:
+                        raise ValueError(f"Placeholder paragraph was not found: {equation.placeholder}")
+                    paragraph.tail = placeholder_paragraph.tail
+                    placeholder_paragraph.getparent().replace(placeholder_paragraph, paragraph)
+                else:
+                    replacement.tail = placeholder_run.tail
+                    placeholder_run.getparent().replace(placeholder_run, replacement)
                 summary.converted += 1
             except Exception as exc:  # noqa: BLE001 - conversion continues per equation.
                 summary.add_error(index, equation.placeholder, str(exc))
@@ -154,15 +190,9 @@ def _embed(
     return summary
 
 
-def _parse_mathml_expr(mathml: str):
-    from mt_toolkit.mathml import parse_mathml
-
-    return parse_mathml(mathml)
-
-
-def _render_previews(mathml_dir: Path, preview_dir: Path, opts: ConversionOptions) -> None:
+def _render_previews(mathml_dir: Path, preview_dir: Path, opts: MathTypeOptions) -> None:
     try:
-        render_mathml_files(mathml_dir, preview_dir, chrome_path=opts.chrome_path)
+        render_mathml_files(mathml_dir, preview_dir, chrome_path=opts.chrome_path, font_px=opts.preview_font_px)
     except Exception:
         if opts.embed_mode == "png-preview":
             raise
@@ -177,17 +207,9 @@ def _write_fallback_preview(path: Path) -> None:
     image.save(path)
 
 
-def _find_placeholder_run(root: etree._Element, placeholder: str) -> etree._Element:
-    for run in root.xpath("//w:r", namespaces=NS):
-        text = "".join(run.xpath(".//w:t/text()", namespaces=NS))
-        if text == placeholder:
-            return run
-    raise ValueError(f"Placeholder run was not found: {placeholder}")
-
-
 def _alternate_content(choice_child: etree._Element, fallback_child: etree._Element) -> etree._Element:
-    alternate = etree.Element(f"{{{MC_NS}}}AlternateContent", nsmap={"mc": MC_NS, "mtype": MTYPE_NS})
-    choice = etree.SubElement(alternate, f"{{{MC_NS}}}Choice", {"Requires": "mtype"})
+    alternate = etree.Element(f"{{{MC_NS}}}AlternateContent", nsmap={"mc": MC_NS, "dxeq": DXEQ_NS})
+    choice = etree.SubElement(alternate, f"{{{MC_NS}}}Choice", {"Requires": "dxeq"})
     choice.append(choice_child)
     fallback = etree.SubElement(alternate, f"{{{MC_NS}}}Fallback")
     fallback.append(fallback_child)
@@ -198,5 +220,5 @@ def _ensure_mc(root: etree._Element) -> None:
     ignorable_attr = f"{{{MC_NS}}}Ignorable"
     current = root.get(ignorable_attr, "")
     values = {item for item in current.split() if item}
-    values.add("mtype")
+    values.add("dxeq")
     root.set(ignorable_attr, " ".join(sorted(values)))

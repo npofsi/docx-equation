@@ -7,7 +7,7 @@ import tempfile
 
 from lxml import etree
 
-from .mtef import (
+from docx_equation.mathtype.mtef import (
     BigOperator,
     Expr,
     Fence,
@@ -56,7 +56,7 @@ def render_mathml_files(
     if not files:
         raise FileNotFoundError(f"No MathML files found in: {source_dir}")
 
-    with tempfile.TemporaryDirectory(prefix="mt_toolkit_mathml_") as tmp:
+    with tempfile.TemporaryDirectory(prefix="docx_equation_mathml_") as tmp:
         tmp_dir = Path(tmp)
         for source in files:
             html_path = tmp_dir / f"{source.stem}.html"

@@ -7,10 +7,12 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from docx import Document
 from lxml import etree
 
-from .latex import parse_latex_subset
-from .mtef import encode_mtef
-from .ole import build_mathtype_ole_object
-from .preview import make_preview_png
+from docx_equation.mathtype.mtef import encode_mtef
+from docx_equation.mathtype.ole import build_mathtype_ole_object
+from docx_equation.mathtype.preview import make_preview_png
+from docx_equation.shared.latex import parse_latex_subset
+from docx_equation.shared.models import EquationStyle, NumberingOptions
+from docx_equation.shared.numbering import make_tabbed_equation_paragraph
 
 
 NS = {
@@ -26,13 +28,13 @@ REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
 IMAGE_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
 OLE_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject"
-PLACEHOLDER = "{{MATHTYPE_OLE_1}}"
+PLACEHOLDER = "{{DOCX_EQUATION_OLE_1}}"
 
 
 def build_demo_docx(formula: str, output_docx: str | Path, mathtype_version: str = "DSMT4") -> Path:
     target = Path(output_docx)
     target.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="mt_toolkit_docx_") as tmp:
+    with tempfile.TemporaryDirectory(prefix="docx_equation_docx_") as tmp:
         tmp_dir = Path(tmp)
         base_docx = tmp_dir / "base.docx"
         preview_path = tmp_dir / "preview.png"
@@ -43,7 +45,7 @@ def build_demo_docx(formula: str, output_docx: str | Path, mathtype_version: str
         preview_width, preview_height = make_preview_png(formula, preview_path)
 
         doc = Document()
-        doc.add_heading("MT Toolkit Demo", level=1)
+        doc.add_heading("DOCX Equation Demo", level=1)
         paragraph = doc.add_paragraph()
         paragraph.add_run("Generated Equation.DSMT4 object: ")
         paragraph.add_run(PLACEHOLDER)
@@ -242,18 +244,13 @@ def make_display_equation_paragraph(
     before_dxa: int = 80,
     after_dxa: int = 80,
 ) -> etree._Element:
-    paragraph = etree.Element(_q("w:p"), nsmap=NS)
-    ppr = etree.SubElement(paragraph, _q("w:pPr"))
-    tabs = etree.SubElement(ppr, _q("w:tabs"))
-    etree.SubElement(tabs, _q("w:tab"), {_q("w:val"): "center", _q("w:pos"): str(text_width_dxa // 2)})
-    etree.SubElement(tabs, _q("w:tab"), {_q("w:val"): "right", _q("w:pos"): str(text_width_dxa)})
-    etree.SubElement(ppr, _q("w:jc"), {_q("w:val"): "left"})
-    etree.SubElement(ppr, _q("w:spacing"), {_q("w:before"): str(before_dxa), _q("w:after"): str(after_dxa)})
-    paragraph.append(_tab_run())
-    paragraph.append(object_run)
-    paragraph.append(_tab_run())
-    paragraph.append(_text_run(number))
-    return paragraph
+    return make_tabbed_equation_paragraph(
+        object_run,
+        number,
+        text_width_dxa,
+        numbering=NumberingOptions(before_dxa=before_dxa, after_dxa=after_dxa, use_seq_field=False),
+        style=EquationStyle(),
+    )
 
 
 def _fit_preview_size(

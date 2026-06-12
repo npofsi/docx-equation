@@ -6,18 +6,21 @@ from lxml import etree
 import olefile
 from docx import Document
 
-from mt_toolkit import (
+from docx_equation import (
     ConversionOptions,
     EquationSpec,
+    ExportOptions,
+    NumberingOptions,
     embed_mathml_placeholders,
+    inspect_docx,
     mathml_to_mathtype_ole,
     mathml_to_omml,
 )
-from mt_toolkit.docx_embed import NS, build_demo_docx, make_display_equation_paragraph
-from mt_toolkit.latex import parse_latex_subset
-from mt_toolkit.mathml import parse_mathml
-from mt_toolkit.mtef import encode_mtef
-from mt_toolkit.ole import build_mathtype_ole_object
+from docx_equation.mathtype.ooxml import NS, build_demo_docx, make_display_equation_paragraph
+from docx_equation.shared.latex import parse_latex_subset
+from docx_equation.shared.mathml import parse_mathml
+from docx_equation.mathtype.mtef import encode_mtef
+from docx_equation.mathtype.ole import build_mathtype_ole_object
 
 
 def test_ole_contains_mathtype_streams(tmp_path):
@@ -124,7 +127,7 @@ def test_mathml_to_omml_returns_word_math():
 def test_embed_mathml_placeholders_adds_alternate_content_and_ole(tmp_path):
     base = tmp_path / "base.docx"
     output = tmp_path / "output.docx"
-    placeholder = "{{MT_EQ_001}}"
+    placeholder = "{{DOCX_EQ_001}}"
     mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
     <msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mn>1</mn>
     </math>"""
@@ -148,4 +151,40 @@ def test_embed_mathml_placeholders_adds_alternate_content_and_ole(tmp_path):
         assert any(name.startswith("word/embeddings/oleObjectMathType") for name in names)
         assert "AlternateContent" in document_xml
         assert "Equation.DSMT4" in document_xml
+        assert placeholder not in document_xml
+    counts = inspect_docx(output)
+    assert counts["alternate_content"] == 1
+    assert counts["embeddings"] == 1
+
+
+def test_embed_mathml_placeholders_can_emit_omml_with_tabbed_numbering(tmp_path):
+    base = tmp_path / "base.docx"
+    output = tmp_path / "output.docx"
+    placeholder = "{{DOCX_EQ_001}}"
+    mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+    <mfrac><mi>a</mi><mi>b</mi></mfrac><mo>=</mo><mi>c</mi>
+    </math>"""
+
+    doc = Document()
+    doc.add_paragraph().add_run(placeholder)
+    doc.save(base)
+
+    summary = embed_mathml_placeholders(
+        base,
+        output,
+        [EquationSpec(placeholder=placeholder, mathml=mathml, display=True, number=1)],
+        ExportOptions(target="omml", numbering=NumberingOptions(chapter=4)),
+        tmp_path / "work",
+    )
+    assert summary.converted == 1
+
+    with ZipFile(output) as zf:
+        names = set(zf.namelist())
+        document_root = etree.fromstring(zf.read("word/document.xml"))
+        document_xml = etree.tostring(document_root, encoding="unicode")
+        tabs = document_root.xpath(".//w:tab[@w:val]", namespaces=NS)
+        assert not any(name.startswith("word/embeddings/") for name in names)
+        assert document_root.xpath(".//m:oMath", namespaces={"m": "http://schemas.openxmlformats.org/officeDocument/2006/math"})
+        assert [tab.get(f"{{{NS['w']}}}val") for tab in tabs[:2]] == ["center", "right"]
+        assert " SEQ Eq \\r 1 \\* ARABIC " in document_xml
         assert placeholder not in document_xml

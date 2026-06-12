@@ -1,4 +1,4 @@
-from .application import (
+from .api import (
     build_equation_docx,
     convert_docx,
     embed_mathml_placeholders,
@@ -6,13 +6,8 @@ from .application import (
     mathml_to_mathtype_ole,
     mathml_to_mtef,
 )
-from .convert_docx import convert_omml_docx_to_mathtype
-from .domain import ConversionError, ConversionOptions, ConversionSummary, EquationSpec
-from .infrastructure.ooxml import mathml_to_omml, mathml_to_omml_xml
-from .latex import parse_latex_subset
-from .mathml import parse_mathml, parse_mathml_file
-from .ole import build_mathtype_ole_object
-from .mtef import (
+from .mathtype.legacy import convert_omml_docx_to_mathtype
+from .mathtype.mtef import (
     BigOperator,
     Expr,
     Fence,
@@ -30,6 +25,24 @@ from .mtef import (
     Text,
     Underbar,
     encode_mtef,
+)
+from .mathtype.ole import build_mathtype_ole_object
+from .omml import mathml_to_omml, mathml_to_omml_xml
+from .shared import (
+    ConversionError,
+    ConversionOptions,
+    ConversionSummary,
+    EquationSpec,
+    EquationStyle,
+    ExportOptions,
+    MathTypeOptions,
+    NumberingOptions,
+    OmmlOptions,
+    make_tabbed_equation_paragraph,
+    normalize_options,
+    parse_latex_subset,
+    parse_mathml,
+    parse_mathml_file,
 )
 
 __all__ = [
@@ -53,6 +66,11 @@ __all__ = [
     "ConversionOptions",
     "ConversionSummary",
     "EquationSpec",
+    "EquationStyle",
+    "ExportOptions",
+    "MathTypeOptions",
+    "NumberingOptions",
+    "OmmlOptions",
     "build_equation_docx",
     "build_mathtype_ole_object",
     "convert_docx",
@@ -64,6 +82,8 @@ __all__ = [
     "mathml_to_mtef",
     "mathml_to_omml",
     "mathml_to_omml_xml",
+    "make_tabbed_equation_paragraph",
+    "normalize_options",
     "parse_mathml",
     "parse_mathml_file",
     "parse_latex_subset",

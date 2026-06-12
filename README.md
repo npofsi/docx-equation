@@ -1,23 +1,23 @@
-# mt-toolkit
+# docx-equation
 
-`mt-toolkit` is a Python package for generating MathType-compatible equation objects and DOCX equation layouts from MathML.
+`docx-equation` builds DOCX equation content from MathML. It can export Word OMML equations or MathType-compatible OLE objects and uses shared layout helpers for numbered display equations.
 
 ## Features
 
-- Parse MathML into the package equation AST.
-- Encode equations as MathType MTEF bytes.
-- Build `Equation.DSMT4` OLE compound objects by default.
-- Optionally build `Equation.DSMT6` objects.
-- Convert MathML into Word OMML.
-- Embed MathML equations into DOCX packages as MathType OLE objects.
-- Preserve Word display through `mc:AlternateContent` with OMML fallback.
-- Create PNG-preview MathType objects when explicit preview rendering is required.
-- Provide a CLI for MathML artifact generation, DOCX demos, DOCX inspection, and legacy OMML conversion.
+- MathML parsing into a shared equation AST.
+- MathML to Word OMML conversion.
+- MathML to MathType MTEF and `Equation.DSMT4` OLE objects.
+- Optional `Equation.DSMT6` OLE generation.
+- DOCX placeholder replacement for OMML or MathType output.
+- `mc:AlternateContent` MathType embedding with OMML fallback.
+- PNG-preview MathType embedding.
+- Shared tabbed display-equation numbering with centered formulas and right-aligned labels.
+- Configurable export options for target format, fonts, font sizes, MathType version, preview sizing, and numbering.
 
 ## Install
 
 ```bash
-python3 -m pip install mt-toolkit
+python3 -m pip install docx-equation
 ```
 
 For local development:
@@ -28,67 +28,119 @@ python3 -m venv .venv
 python3 -m pip install -e ".[dev]"
 ```
 
+## Package Layout
+
+```text
+docx_equation.shared      MathML parser, LaTeX subset parser, models, numbering helpers
+docx_equation.omml        MathML to OMML conversion and DOCX embedding
+docx_equation.mathtype    MTEF/OLE generation, preview rendering, DOCX embedding
+docx_equation.api         Public routing API for selected export targets
+docx_equation.cli         Command-line interface
+```
+
 ## Python API
 
+Create OMML or MathType output from the same MathML placeholders:
+
 ```python
-from mt_toolkit import ConversionOptions, mathml_to_mathtype_ole, mathml_to_omml
+from docx_equation import (
+    EquationSpec,
+    EquationStyle,
+    ExportOptions,
+    MathTypeOptions,
+    NumberingOptions,
+    OmmlOptions,
+    embed_mathml_placeholders,
+)
 
-mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
-<mfrac><mi>a</mi><mi>b</mi></mfrac>
-</math>"""
+equations = [
+    EquationSpec(
+        placeholder="{{DOCX_EQ_001}}",
+        mathml="<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>x</mi></math>",
+        display=True,
+        number=1,
+    )
+]
 
-ole_bytes = mathml_to_mathtype_ole(mathml)
-omml_element = mathml_to_omml(mathml)
+common = {
+    "style": EquationStyle(
+        font_family="Times New Roman",
+        east_asia_font="SimSun",
+        font_size_pt=10.5,
+        number_font_size_pt=10.5,
+    ),
+    "numbering": NumberingOptions(chapter=4, sequence_name="Eq"),
+}
 
-ole_dsmt6 = mathml_to_mathtype_ole(
-    mathml,
-    ConversionOptions(mathtype_version="DSMT6"),
+embed_mathml_placeholders(
+    "input.docx",
+    "output_omml.docx",
+    equations,
+    ExportOptions(target="omml", omml=OmmlOptions(font_family="Times New Roman"), **common),
+)
+
+embed_mathml_placeholders(
+    "input.docx",
+    "output_mathtype.docx",
+    equations,
+    ExportOptions(
+        target="mathtype",
+        mathtype=MathTypeOptions(embed_mode="alternate-content", mathtype_version="DSMT4"),
+        **common,
+    ),
 )
 ```
 
-Embed MathML placeholders in a DOCX:
+Build standalone equation documents:
 
 ```python
-from mt_toolkit import ConversionOptions, EquationSpec, embed_mathml_placeholders
+from docx_equation import ExportOptions, NumberingOptions, build_equation_docx
 
-summary = embed_mathml_placeholders(
-    "input_with_placeholders.docx",
-    "output_mathtype.docx",
-    [
-        EquationSpec(
-            placeholder="{{MT_EQ_001}}",
-            mathml="<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>x</mi></math>",
-            display=False,
-        )
-    ],
-    ConversionOptions(embed_mode="alternate-content", mathtype_version="DSMT4"),
+mathml_items = [
+    "<math xmlns='http://www.w3.org/1998/Math/MathML'><mfrac><mi>a</mi><mi>b</mi></mfrac></math>"
+]
+
+build_equation_docx(
+    mathml_items,
+    "equations.docx",
+    ExportOptions(target="mathtype", numbering=NumberingOptions(chapter=1)),
 )
+```
+
+Generate raw objects:
+
+```python
+from docx_equation import mathml_to_mathtype_ole, mathml_to_omml
+
+mathml = "<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>x</mi></math>"
+ole_bytes = mathml_to_mathtype_ole(mathml)
+omml_element = mathml_to_omml(mathml)
 ```
 
 ## Command Line
 
-Generate MTEF and OLE from MathML:
+Generate MTEF, OLE, or OMML artifacts:
 
 ```bash
-mt-toolkit mathml equation.mml --mtef output/equation.mtef --ole output/oleObject1.bin
+docx-equation mathml equation.mml --mtef equation.mtef --ole oleObject1.bin --omml equation.omml
 ```
 
-Build a demo DOCX from MathML files:
+Build a DOCX from MathML files:
 
 ```bash
-mt-toolkit demo equation_001.mml equation_002.mml -o output/demo.docx
+docx-equation demo equation_001.mml equation_002.mml -o equations.docx --target mathtype --chapter 4
+```
+
+Convert a DOCX:
+
+```bash
+docx-equation convert input.docx -o output.docx --target mathtype --embed-mode alternate-content
 ```
 
 Inspect a DOCX:
 
 ```bash
-mt-toolkit inspect output/demo.docx
-```
-
-Run the legacy OMML conversion entry point:
-
-```bash
-mt-toolkit convert input.docx -o output.docx --display-layout tabbed
+docx-equation inspect output.docx
 ```
 
 ## Build
@@ -100,6 +152,6 @@ python3 -m build
 python3 -m twine check dist/*
 ```
 
-## CI And Publishing
+## CI
 
-The GitHub Actions workflow runs tests and builds distributions on pushes and pull requests. The publish job is manual and runs only through `workflow_dispatch` after PyPI trusted publishing has been configured.
+GitHub Actions runs `pytest`, `python -m build`, and `twine check dist/*`. The PyPI publish job uses `workflow_dispatch` and does not run automatically.

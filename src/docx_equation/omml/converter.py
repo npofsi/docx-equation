@@ -2,25 +2,30 @@ from __future__ import annotations
 
 from lxml import etree
 
+from docx_equation.shared.models import OmmlOptions
+
 
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 OMML_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
 
-def mathml_to_omml(data: bytes | str, display: bool = False) -> etree._Element:
+def mathml_to_omml(data: bytes | str, display: bool = False, options: OmmlOptions | None = None) -> etree._Element:
+    opts = options or OmmlOptions()
     root = _parse(data)
     omath = _el("m:oMath")
     _append_children(omath, root)
-    if not display:
-        return omath
-    para = _el("m:oMathPara")
-    para.append(omath)
-    return para
+    result = omath
+    if display:
+        para = _el("m:oMathPara")
+        para.append(omath)
+        result = para
+    _apply_math_fonts(result, opts)
+    return result
 
 
-def mathml_to_omml_xml(data: bytes | str, display: bool = False) -> bytes:
-    return etree.tostring(mathml_to_omml(data, display=display), encoding="utf-8")
+def mathml_to_omml_xml(data: bytes | str, display: bool = False, options: OmmlOptions | None = None) -> bytes:
+    return etree.tostring(mathml_to_omml(data, display=display, options=options), encoding="utf-8")
 
 
 def _parse(data: bytes | str) -> etree._Element:
@@ -278,6 +283,16 @@ def _math_run_properties() -> etree._Element:
     fonts.set(_qn("w:eastAsia"), "Times New Roman")
     rpr.append(fonts)
     return rpr
+
+
+def _apply_math_fonts(root: etree._Element, options: OmmlOptions) -> None:
+    font = options.font_family or "Times New Roman"
+    east_asia = options.east_asia_font or font
+    for fonts in root.xpath(".//w:rFonts", namespaces={"w": W_NS}):
+        fonts.set(_qn("w:ascii"), font)
+        fonts.set(_qn("w:hAnsi"), font)
+        fonts.set(_qn("w:cs"), font)
+        fonts.set(_qn("w:eastAsia"), east_asia)
 
 
 def _operator_text(element: etree._Element | None) -> str:

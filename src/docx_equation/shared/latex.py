@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .mtef import BigOperator, Expr, Fraction, Hat, Overbar, Sequence, Sqrt, Subscript, Subsup, Superscript, Symbol, Text, Underbar, seq
+from docx_equation.mathtype.mtef import BigOperator, Expr, Fraction, Hat, Overbar, Sequence, Sqrt, Subscript, Subsup, Superscript, Symbol, Text, Underbar, seq
 
 
 GREEK = {
