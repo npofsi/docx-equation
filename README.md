@@ -154,4 +154,4 @@ python3 -m twine check dist/*
 
 ## CI
 
-GitHub Actions runs `pytest`, `python -m build`, and `twine check dist/*`. The PyPI publish job uses `workflow_dispatch` and does not run automatically.
+GitHub Actions runs `pytest`, `python -m build`, and `twine check dist/*` on pushes and pull requests. PyPI publishing uses Trusted Publishing with the `pypi` GitHub environment. The publish job runs after CI on `v*` tag pushes, and it can also be started with `workflow_dispatch` when `publish` is set to `true`.
