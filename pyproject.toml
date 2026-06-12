@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mt-toolkit"
-version = "0.1.0"
-description = "Tools for generating MathType-compatible equation objects and DOCX equation layouts."
+version = "0.2.0"
+description = "Tools for generating MathType-compatible equation objects and DOCX equation layouts from MathML."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

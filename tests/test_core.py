@@ -4,7 +4,15 @@ from zipfile import ZipFile
 
 from lxml import etree
 import olefile
+from docx import Document
 
+from mt_toolkit import (
+    ConversionOptions,
+    EquationSpec,
+    embed_mathml_placeholders,
+    mathml_to_mathtype_ole,
+    mathml_to_omml,
+)
 from mt_toolkit.docx_embed import NS, build_demo_docx, make_display_equation_paragraph
 from mt_toolkit.latex import parse_latex_subset
 from mt_toolkit.mathml import parse_mathml
@@ -54,7 +62,8 @@ def test_mathml_parser_supports_section_formula_subset():
     )
     mtef = encode_mtef(expr)
     assert mtef.startswith(b"\x05\x01\x00\x06")
-    assert b"DSMT6" in mtef
+    assert b"DSMT4" in mtef
+    assert b"DSMT6" in encode_mtef(expr, "DSMT6")
 
 
 def test_latex_parser_supports_big_operator_and_decoration():
@@ -84,3 +93,59 @@ def test_display_equation_paragraph_uses_center_and_right_tabs():
     assert [tab.get(f"{{{NS['w']}}}val") for tab in tabs] == ["center", "right"]
     assert [tab.get(f"{{{NS['w']}}}pos") for tab in tabs] == ["4479", "8958"]
     assert "(4-1)" in "".join(paragraph.xpath(".//w:t/text()", namespaces=NS))
+
+
+def test_mathml_to_mathtype_ole_uses_dsmt4_by_default(tmp_path):
+    mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <mfrac><mi>a</mi><mi>b</mi></mfrac>
+    </math>"""
+    ole_path = tmp_path / "equation.bin"
+    ole_path.write_bytes(mathml_to_mathtype_ole(mathml))
+
+    ole = olefile.OleFileIO(str(ole_path))
+    try:
+        native = ole.openstream(["Equation Native"]).read()
+        comp = ole.openstream(["\x01CompObj"]).read()
+        assert b"DSMT4" in native
+        assert b"Equation.DSMT4" in comp
+    finally:
+        ole.close()
+
+
+def test_mathml_to_omml_returns_word_math():
+    mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <msub><mi>P</mi><mtext>es</mtext></msub><mo>=</mo><mn>1</mn>
+    </math>"""
+    omml = mathml_to_omml(mathml)
+    assert etree.QName(omml).localname == "oMath"
+    assert omml.xpath(".//m:sSub", namespaces={"m": "http://schemas.openxmlformats.org/officeDocument/2006/math"})
+
+
+def test_embed_mathml_placeholders_adds_alternate_content_and_ole(tmp_path):
+    base = tmp_path / "base.docx"
+    output = tmp_path / "output.docx"
+    placeholder = "{{MT_EQ_001}}"
+    mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+    <msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mn>1</mn>
+    </math>"""
+
+    doc = Document()
+    doc.add_paragraph().add_run(placeholder)
+    doc.save(base)
+
+    summary = embed_mathml_placeholders(
+        base,
+        output,
+        [EquationSpec(placeholder=placeholder, mathml=mathml, display=False)],
+        ConversionOptions(embed_mode="alternate-content"),
+        tmp_path / "work",
+    )
+    assert summary.converted == 1
+
+    with ZipFile(output) as zf:
+        names = set(zf.namelist())
+        document_xml = zf.read("word/document.xml").decode("utf-8")
+        assert any(name.startswith("word/embeddings/oleObjectMathType") for name in names)
+        assert "AlternateContent" in document_xml
+        assert "Equation.DSMT4" in document_xml
+        assert placeholder not in document_xml

@@ -190,8 +190,8 @@ def seq(items: Iterable[Expr]) -> Expr:
     return Sequence(tuple(flattened))
 
 
-def encode_mtef(expr: Expr) -> bytes:
-    return _preamble() + b"\x0a" + _line(expr) + b"\x00"
+def encode_mtef(expr: Expr, mathtype_version: str = "DSMT4") -> bytes:
+    return _preamble(mathtype_version) + b"\x0a" + _line(expr) + b"\x00"
 
 
 def _line(expr: Expr) -> bytes:
@@ -218,10 +218,13 @@ def _partition_bytes(count: int) -> bytes:
     return bytes((count * 2 + 7) // 8)
 
 
-def _preamble() -> bytes:
+def _preamble(mathtype_version: str) -> bytes:
+    version = mathtype_version.upper()
+    if version not in {"DSMT4", "DSMT6"}:
+        raise ValueError(f"Unsupported MathType version: {mathtype_version}")
     return b"".join(
         [
-            b"\x05\x01\x00\x06\x09DSMT6\x00\x01",
+            b"\x05\x01\x00\x06\x09" + version.encode("ascii") + b"\x00\x01",
             b"\x13WinAllBasicCodePages\x00",
             _font_def(5, "Arial"),
             _font_def(3, "Symbol"),

@@ -1,4 +1,14 @@
+from .application import (
+    build_equation_docx,
+    convert_docx,
+    embed_mathml_placeholders,
+    inspect_docx,
+    mathml_to_mathtype_ole,
+    mathml_to_mtef,
+)
 from .convert_docx import convert_omml_docx_to_mathtype
+from .domain import ConversionError, ConversionOptions, ConversionSummary, EquationSpec
+from .infrastructure.ooxml import mathml_to_omml, mathml_to_omml_xml
 from .latex import parse_latex_subset
 from .mathml import parse_mathml, parse_mathml_file
 from .ole import build_mathtype_ole_object
@@ -39,9 +49,21 @@ __all__ = [
     "Symbol",
     "Text",
     "Underbar",
+    "ConversionError",
+    "ConversionOptions",
+    "ConversionSummary",
+    "EquationSpec",
+    "build_equation_docx",
     "build_mathtype_ole_object",
+    "convert_docx",
     "convert_omml_docx_to_mathtype",
     "encode_mtef",
+    "embed_mathml_placeholders",
+    "inspect_docx",
+    "mathml_to_mathtype_ole",
+    "mathml_to_mtef",
+    "mathml_to_omml",
+    "mathml_to_omml_xml",
     "parse_mathml",
     "parse_mathml_file",
     "parse_latex_subset",

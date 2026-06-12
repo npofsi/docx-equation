@@ -49,6 +49,7 @@ def convert_omml_docx_to_mathtype(
     max_width_pt: float = 360.0,
     preview_pt_per_px: float | None = 0.15,
     display_layout: str = "preserve",
+    mathtype_version: str = "DSMT4",
 ) -> int:
     source = Path(input_docx)
     target = Path(output_docx)
@@ -66,6 +67,7 @@ def convert_omml_docx_to_mathtype(
                 max_width_pt,
                 preview_pt_per_px,
                 display_layout,
+                mathtype_version,
             )
     return _convert(
         source,
@@ -77,6 +79,7 @@ def convert_omml_docx_to_mathtype(
         max_width_pt,
         preview_pt_per_px,
         display_layout,
+        mathtype_version,
     )
 
 
@@ -90,6 +93,7 @@ def _convert(
     max_width_pt: float,
     preview_pt_per_px: float | None,
     display_layout: str,
+    mathtype_version: str,
 ) -> int:
     work_dir.mkdir(parents=True, exist_ok=True)
     mathml_dir = work_dir / "mathml"
@@ -130,7 +134,8 @@ def _convert(
             ole_rel_id = _add_relationship(rels_root, OLE_REL, f"embeddings/{ole_name}")
 
             expr = parse_mathml(mathml_path.read_bytes())
-            ole_bytes = build_mathtype_ole_object(encode_mtef(expr))
+            prog_id = f"Equation.{mathtype_version}"
+            ole_bytes = build_mathtype_ole_object(encode_mtef(expr, mathtype_version), prog_id)
             (ole_dir / ole_name).write_bytes(ole_bytes)
             ole_entries.append((f"word/embeddings/{ole_name}", ole_bytes))
             media_entries.append((f"word/media/{image_name}", preview_path.read_bytes()))
@@ -148,6 +153,7 @@ def _convert(
                 max_width_pt=max_width_pt,
                 preview_pt_per_px=preview_pt_per_px,
                 vertical_align="middle" if target_info.is_display and target_info.equation_number else None,
+                prog_id=prog_id,
             )
             if target_info.is_display and target_info.equation_number and display_layout == "tabbed":
                 replacement = make_display_equation_paragraph(

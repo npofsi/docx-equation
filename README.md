@@ -1,74 +1,105 @@
 # mt-toolkit
 
-`mt-toolkit` is a Python package for creating MathType-compatible equation artifacts. It can encode a supported formula tree to MTEF, wrap MTEF data in a legacy OLE compound file, render equation previews, and replace DOCX OMML equations with embedded MathType-style objects.
+`mt-toolkit` is a Python package for generating MathType-compatible equation objects and DOCX equation layouts from MathML.
 
 ## Features
 
-- Encode a supported equation AST to MathType MTEF bytes.
-- Build `Equation.DSMT4` OLE compound objects.
-- Parse a practical subset of LaTeX into the package AST.
-- Parse MathML structures including fractions, roots, scripts, fenced expressions, accents, large operators, matrices, and piles.
-- Render MathML previews to PNG with a headless Chrome executable.
-- Convert DOCX OMML equations to embedded OLE objects with PNG previews.
-- Create display-equation paragraphs with centered formulas and right-aligned equation numbers.
+- Parse MathML into the package equation AST.
+- Encode equations as MathType MTEF bytes.
+- Build `Equation.DSMT4` OLE compound objects by default.
+- Optionally build `Equation.DSMT6` objects.
+- Convert MathML into Word OMML.
+- Embed MathML equations into DOCX packages as MathType OLE objects.
+- Preserve Word display through `mc:AlternateContent` with OMML fallback.
+- Create PNG-preview MathType objects when explicit preview rendering is required.
+- Provide a CLI for MathML artifact generation, DOCX demos, DOCX inspection, and legacy OMML conversion.
 
 ## Install
 
 ```bash
-python -m pip install mt-toolkit
+python3 -m pip install mt-toolkit
 ```
 
 For local development:
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -e ".[dev]"
-```
-
-## Command Line
-
-Create MTEF and OLE files from a formula:
-
-```bash
-mt-toolkit "\\frac{1}{2}+x_i" --out output
-```
-
-Create a demo DOCX:
-
-```bash
-mt-toolkit "F_n=F_{n-1}+F_{n-2}" --docx output/demo.docx
-```
-
-Convert a DOCX:
-
-```bash
-mt-toolkit \
-  --convert-docx input.docx \
-  --converted-docx output.docx \
-  --work-dir output/work \
-  --display-layout tabbed
+python3 -m pip install -e ".[dev]"
 ```
 
 ## Python API
 
 ```python
-from mt_toolkit import encode_mtef, parse_latex_subset, build_mathtype_ole_object
+from mt_toolkit import ConversionOptions, mathml_to_mathtype_ole, mathml_to_omml
 
-expr = parse_latex_subset(r"\sum_{i=1}^{n} x_i")
-mtef = encode_mtef(expr)
-ole_bytes = build_mathtype_ole_object(mtef)
+mathml = """<math xmlns="http://www.w3.org/1998/Math/MathML">
+<mfrac><mi>a</mi><mi>b</mi></mfrac>
+</math>"""
+
+ole_bytes = mathml_to_mathtype_ole(mathml)
+omml_element = mathml_to_omml(mathml)
+
+ole_dsmt6 = mathml_to_mathtype_ole(
+    mathml,
+    ConversionOptions(mathtype_version="DSMT6"),
+)
+```
+
+Embed MathML placeholders in a DOCX:
+
+```python
+from mt_toolkit import ConversionOptions, EquationSpec, embed_mathml_placeholders
+
+summary = embed_mathml_placeholders(
+    "input_with_placeholders.docx",
+    "output_mathtype.docx",
+    [
+        EquationSpec(
+            placeholder="{{MT_EQ_001}}",
+            mathml="<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>x</mi></math>",
+            display=False,
+        )
+    ],
+    ConversionOptions(embed_mode="alternate-content", mathtype_version="DSMT4"),
+)
+```
+
+## Command Line
+
+Generate MTEF and OLE from MathML:
+
+```bash
+mt-toolkit mathml equation.mml --mtef output/equation.mtef --ole output/oleObject1.bin
+```
+
+Build a demo DOCX from MathML files:
+
+```bash
+mt-toolkit demo equation_001.mml equation_002.mml -o output/demo.docx
+```
+
+Inspect a DOCX:
+
+```bash
+mt-toolkit inspect output/demo.docx
+```
+
+Run the legacy OMML conversion entry point:
+
+```bash
+mt-toolkit convert input.docx -o output.docx --display-layout tabbed
 ```
 
 ## Build
 
 ```bash
-python -m pip install -e ".[dev]"
-python -m pytest
-python -m build
-python -m twine check dist/*
+python3 -m pip install -e ".[dev]"
+python3 -m pytest
+python3 -m build
+python3 -m twine check dist/*
 ```
 
 ## CI And Publishing
 
-The GitHub Actions workflow runs tests and builds distributions on pushes and pull requests. The publish job is manual and runs only when the workflow is dispatched with `publish` enabled after PyPI trusted publishing has been configured.
+The GitHub Actions workflow runs tests and builds distributions on pushes and pull requests. The publish job is manual and runs only through `workflow_dispatch` after PyPI trusted publishing has been configured.

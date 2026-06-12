@@ -29,7 +29,7 @@ OLE_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/o
 PLACEHOLDER = "{{MATHTYPE_OLE_1}}"
 
 
-def build_demo_docx(formula: str, output_docx: str | Path) -> Path:
+def build_demo_docx(formula: str, output_docx: str | Path, mathtype_version: str = "DSMT4") -> Path:
     target = Path(output_docx)
     target.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="mt_toolkit_docx_") as tmp:
@@ -39,7 +39,7 @@ def build_demo_docx(formula: str, output_docx: str | Path) -> Path:
         ole_path = tmp_dir / "oleObject1.bin"
 
         expr = parse_latex_subset(formula)
-        ole_path.write_bytes(build_mathtype_ole_object(encode_mtef(expr)))
+        ole_path.write_bytes(build_mathtype_ole_object(encode_mtef(expr, mathtype_version), f"Equation.{mathtype_version}"))
         preview_width, preview_height = make_preview_png(formula, preview_path)
 
         doc = Document()
@@ -50,7 +50,7 @@ def build_demo_docx(formula: str, output_docx: str | Path) -> Path:
         doc.add_paragraph("This DOCX embeds a MathType-compatible OLE object and uses a PNG preview for display.")
         doc.save(base_docx)
 
-        _inject_object(base_docx, target, preview_path, ole_path, preview_width, preview_height)
+        _inject_object(base_docx, target, preview_path, ole_path, preview_width, preview_height, f"Equation.{mathtype_version}")
     return target
 
 
@@ -61,6 +61,7 @@ def _inject_object(
     ole_path: Path,
     preview_width_px: int,
     preview_height_px: int,
+    prog_id: str = "Equation.DSMT4",
 ) -> None:
     parser = etree.XMLParser(resolve_entities=False, recover=True, remove_blank_text=False)
     with ZipFile(input_docx) as zin:
@@ -74,7 +75,7 @@ def _inject_object(
         _ensure_default(content_types_root, "bin", "application/vnd.openxmlformats-officedocument.oleObject")
 
         placeholder_run = _find_placeholder_run(document_root)
-        object_run = _object_run(image_rel_id, ole_rel_id, preview_width_px, preview_height_px)
+        object_run = _object_run(image_rel_id, ole_rel_id, preview_width_px, preview_height_px, prog_id=prog_id)
         placeholder_run.getparent().replace(placeholder_run, object_run)
 
         document_xml = etree.tostring(document_root, encoding="utf-8", xml_declaration=True, standalone=True)
@@ -134,6 +135,7 @@ def make_object_run(
     max_width_pt: float = 360.0,
     preview_pt_per_px: float | None = None,
     vertical_align: str | None = None,
+    prog_id: str = "Equation.DSMT4",
 ) -> etree._Element:
     width_pt, height_pt = _fit_preview_size(
         preview_width_px,
@@ -212,7 +214,7 @@ def make_object_run(
         _q("o:OLEObject"),
         {
             "Type": "Embed",
-            "ProgID": "Equation.DSMT4",
+            "ProgID": prog_id,
             "ShapeID": shape_id,
             "DrawAspect": "Content",
             "ObjectID": object_id,
@@ -222,8 +224,14 @@ def make_object_run(
     return run
 
 
-def _object_run(image_rel_id: str, ole_rel_id: str, preview_width_px: int, preview_height_px: int) -> etree._Element:
-    return make_object_run(image_rel_id, ole_rel_id, preview_width_px, preview_height_px, index=1, display=True)
+def _object_run(
+    image_rel_id: str,
+    ole_rel_id: str,
+    preview_width_px: int,
+    preview_height_px: int,
+    prog_id: str = "Equation.DSMT4",
+) -> etree._Element:
+    return make_object_run(image_rel_id, ole_rel_id, preview_width_px, preview_height_px, index=1, display=True, prog_id=prog_id)
 
 
 def make_display_equation_paragraph(
