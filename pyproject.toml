@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docx-equation"
-version = "0.3.0"
+version = "0.3.1"
 description = "Tools for generating MathType-compatible equation objects and DOCX equation layouts from MathML."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 authors = [{ name = "npofsi" }]
 keywords = ["mathtype", "mtef", "ole", "docx", "mathml"]

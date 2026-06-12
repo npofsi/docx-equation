@@ -152,6 +152,10 @@ python3 -m build
 python3 -m twine check dist/*
 ```
 
+## License
+
+`docx-equation` is distributed under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`).
+
 ## CI
 
 GitHub Actions runs `pytest`, `python -m build`, and `twine check dist/*` on pushes and pull requests. PyPI publishing uses Trusted Publishing with the `pypi` GitHub environment. The publish job runs after CI on `v*` tag pushes, and it can also be started with `workflow_dispatch` when `publish` is set to `true`.
